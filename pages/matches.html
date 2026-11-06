@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Resource Matches – ResourceX</title>
+  <meta name="description" content="Ranked resource recommendations matching your academic course requirements, components, or study material needs."/>
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/global.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/dashboard.css"/>
+</head>
+<body>
+<div class="page-wrapper">
+  <div class="dashboard-layout">
+    <aside class="dashboard-sidebar" id="dashboard-sidebar" aria-label="Dashboard navigation"></aside>
+
+    <main class="dashboard-content">
+      <div class="dashboard-content-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:var(--space-4)">
+        <div>
+          <h1>Smart Resource Matches</h1>
+          <p class="text-secondary">Ranked recommendations based on your course requirements, needed components, and preferences.</p>
+        </div>
+        <a href="requirements.html" class="btn btn-outline">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Post New Requirement
+        </a>
+      </div>
+
+      <!-- Smart Algorithm Notice -->
+      <div class="alert alert-info" style="margin-bottom:var(--space-6);font-size:var(--text-xs);display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:var(--space-2)">
+          <span>⚡ <strong>Smart Match Engine:</strong> Matches are computed automatically based on keyword overlap, taxonomy categories, and exchange mode criteria.</span>
+        </div>
+        <span class="badge badge-info">AUTOMATED</span>
+      </div>
+
+      <!-- Active Requirement Header Card -->
+      <div class="card" style="padding:var(--space-6);margin-bottom:var(--space-6);background:var(--bg-surface);border-left:4px solid var(--primary)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:var(--space-4)">
+          <div>
+            <div style="display:flex;gap:var(--space-2);align-items:center;margin-bottom:var(--space-1)">
+              <span class="badge badge-primary" id="req-category-badge">Electronics</span>
+              <span class="text-xs text-muted" id="req-date-text">Needed by: In 5 days</span>
+            </div>
+            <h2 style="font-size:var(--text-lg);font-weight:700" id="current-req-title">
+              Arduino components and digital learning material for an IoT project
+            </h2>
+            <p class="text-secondary text-sm" style="margin-top:var(--space-1);margin-bottom:0" id="current-req-desc">
+              Looking for Arduino Uno or ESP32 development boards, basic sensor modules, and reference guides for the semester capstone.
+            </p>
+          </div>
+          <div>
+            <select id="req-switcher" class="form-control" style="font-size:var(--text-xs);height:36px" onchange="switchRequirement(this.value)">
+              <!-- Options populated by JS -->
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loading-state" style="padding:var(--space-12) 0;text-align:center;">
+        <div class="spinner spinner-lg" style="margin:0 auto var(--space-4)"></div>
+        <p class="text-muted">Computing relevance matches across campus resources...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="hidden" style="padding:var(--space-12) 0;text-align:center;">
+        <div style="font-size:3rem;margin-bottom:var(--space-3)">🔍</div>
+        <h3>No Close Matches Found Yet</h3>
+        <p class="text-muted text-sm" style="margin-bottom:var(--space-6);max-width:440px;margin-left:auto;margin-right:auto">
+          We couldn't find active resources matching your exact specifications. Your requirement remains active and peers will be alerted when matching items are listed.
+        </p>
+        <a href="browse.html" class="btn btn-outline">Browse All Campus Resources</a>
+      </div>
+
+      <!-- Match Cards List -->
+      <div id="matches-list" style="display:flex;flex-direction:column;gap:var(--space-4)">
+        <!-- Populated via JS -->
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/demo-data.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/common.js"></script>
+<script src="../js/matching.js"></script>
+<script>
+  let availableRequirements = [];
+  let activeReq = null;
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    initNavbar();
+    initFooter();
+    renderDashboardSidebar('matches');
+
+    await loadRequirementsAndMatches();
+  });
+
+  async function loadRequirementsAndMatches() {
+    const loading = document.getElementById('loading-state');
+    try {
+      loading.classList.remove('hidden');
+
+      // 1. Fetch requirements
+      const list = await API.requirements.list();
+      availableRequirements = list || [];
+
+      // Check if session storage has a newly submitted requirement
+      const cached = sessionStorage.getItem('current_active_requirement');
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (!availableRequirements.find(r => r.id === parsed.id)) {
+            availableRequirements.unshift(parsed);
+          }
+          activeReq = parsed;
+        } catch(e) {}
+      }
+
+      if (!activeReq && availableRequirements.length > 0) {
+        activeReq = availableRequirements[0];
+      } else if (!activeReq) {
+        // Fallback demo requirement
+        activeReq = {
+          id: 'demo_req',
+          title: 'Arduino components and digital learning material for an IoT project',
+          category: 'electronics',
+          description: 'Need Arduino Uno, breadboard, sensor kit, and course notes for smart sensor system.',
+          tags: ['arduino', 'iot', 'sensors', 'electronics'],
+          preferredModes: ['free', 'borrow', 'sell'],
+          type: 'any'
+        };
+        availableRequirements.push(activeReq);
+      }
+
+      // Populate switcher dropdown
+      const switcher = document.getElementById('req-switcher');
+      switcher.innerHTML = availableRequirements.map((r, i) => `
+        <option value="${r.id || i}" ${r.id === activeReq.id ? 'selected' : ''}>
+          ${escapeHtml(r.title.slice(0, 35))}...
+        </option>
+      `).join('');
+
+      renderRequirementSummary(activeReq);
+      await computeAndRenderMatches(activeReq);
+
+    } catch (err) {
+      console.error(err);
+      Toast.show('Failed to compute smart matches', 'danger');
+    } finally {
+      loading.classList.add('hidden');
+    }
+  }
+
+  function renderRequirementSummary(req) {
+    document.getElementById('current-req-title').textContent = req.title;
+    document.getElementById('current-req-desc').textContent = req.description;
+    document.getElementById('req-category-badge').textContent = (req.category || 'General').toUpperCase();
+    document.getElementById('req-date-text').textContent = req.neededDate ? `Needed by: ${formatDate(req.neededDate)}` : 'Needed this semester';
+  }
+
+  async function switchRequirement(id) {
+    activeReq = availableRequirements.find(r => (r.id || '').toString() === id.toString()) || availableRequirements[0];
+    renderRequirementSummary(activeReq);
+    await computeAndRenderMatches(activeReq);
+  }
+
+  async function computeAndRenderMatches(req) {
+    const matchesContainer = document.getElementById('matches-list');
+    const emptyState = document.getElementById('empty-state');
+
+    const matches = await MatchingEngine.findMatches(req, 8);
+
+    if (!matches || matches.length === 0) {
+      matchesContainer.innerHTML = '';
+      emptyState.classList.remove('hidden');
+      return;
+    }
+
+    emptyState.classList.add('hidden');
+    matchesContainer.innerHTML = matches.map(m => {
+      const r = m.resource;
+      const scoreColor = m.matchPercentage >= 80 ? 'var(--color-success-600)' : m.matchPercentage >= 50 ? 'var(--primary)' : 'var(--color-warning-600)';
+
+      return `
+        <div class="card" style="padding:var(--space-6);display:flex;gap:var(--space-6);align-items:center;flex-wrap:wrap">
+          <img src="${r.thumbnail || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=300&q=80'}" alt="${escapeHtml(r.title)}" style="width:100px;height:100px;border-radius:var(--radius-lg);object-fit:cover;flex-shrink:0"/>
+
+          <div style="flex:1;min-width:280px">
+            <div style="display:flex;gap:var(--space-2);align-items:center;margin-bottom:var(--space-1);flex-wrap:wrap">
+              <span class="badge badge-${r.type === 'digital' ? 'info' : 'primary'}">${r.type.toUpperCase()}</span>
+              <span class="badge badge-${r.exchangeMode === 'free' ? 'success' : 'neutral'}">${r.exchangeMode.toUpperCase()}</span>
+              <span class="badge badge-${r.status === 'available' ? 'success' : 'neutral'}">${r.status.toUpperCase()}</span>
+              <span style="font-size:var(--text-xs);color:var(--text-muted)">• ${escapeHtml(r.department || r.category)}</span>
+            </div>
+
+            <h3 style="font-size:var(--text-base);font-weight:700;margin-bottom:var(--space-1)">
+              <a href="resource-details.html?id=${r.id}">${escapeHtml(r.title)}</a>
+            </h3>
+
+            <!-- Match Score Meter -->
+            <div style="margin:var(--space-2) 0;display:flex;align-items:center;gap:var(--space-3)">
+              <div style="flex:1;max-width:200px;height:8px;background:var(--bg-muted);border-radius:var(--radius-full);overflow:hidden">
+                <div style="width:${m.matchPercentage}%;height:100%;background:${scoreColor};border-radius:var(--radius-full)"></div>
+              </div>
+              <span style="font-weight:700;font-size:var(--text-xs);color:${scoreColor}">${m.matchPercentage}% Match</span>
+            </div>
+
+            <!-- Why it matched reasons -->
+            <div style="display:flex;gap:var(--space-2);flex-wrap:wrap;margin-top:var(--space-2)">
+              ${m.reasons.map(reason => `<span class="tag" style="font-size:11px;padding:2px 8px">✓ ${escapeHtml(reason)}</span>`).join('')}
+            </div>
+          </div>
+
+          <!-- Price & Action CTA -->
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:var(--space-3);min-width:140px">
+            <div style="text-align:right">
+              <div style="font-size:var(--text-lg);font-weight:800;color:var(--primary)">
+                ${r.exchangeMode === 'free' ? 'FREE' : formatCurrency(r.price || 0)}
+              </div>
+              <div style="font-size:var(--text-xs);color:var(--text-muted)">
+                ${r.exchangeMode === 'borrow' ? 'Peer Borrowing' : r.exchangeMode === 'sell' ? 'For Sale' : 'Free Sharing'}
+              </div>
+            </div>
+
+            <a href="resource-details.html?id=${r.id}" class="btn btn-primary btn-sm" style="width:100%">
+              View Details & Request
+            </a>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+</script>
+</body>
+</html>

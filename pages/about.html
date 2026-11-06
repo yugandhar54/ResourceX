@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>About Us – ResourceX</title>
+  <meta name="description" content="Discover the mission, core pillars, and campus impact of ResourceX — the unified academic resource sharing platform."/>
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/global.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/landing.css"/>
+  <style>
+    .pillar-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: var(--space-8);
+      transition: transform var(--transition-base), box-shadow var(--transition-base);
+    }
+    .pillar-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+    .stat-pill {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrapper">
+  <main class="main-content">
+    <!-- Hero Banner -->
+    <section style="background:linear-gradient(135deg, var(--color-navy-900), var(--color-navy-800));color:#fff;padding:var(--space-16) 0 var(--space-12);text-align:center;">
+      <div class="container" style="max-width:800px">
+        <span class="badge badge-primary" style="margin-bottom:var(--space-4);background:rgba(255,255,255,0.15);color:#fff;border:none">OUR MISSION</span>
+        <h1 style="font-size:clamp(2rem, 4vw, 3rem);font-weight:800;letter-spacing:-0.03em;margin-bottom:var(--space-4);color:#fff">
+          One Campus. Every Resource.
+        </h1>
+        <p style="font-size:var(--text-lg);color:rgba(255,255,255,0.85);line-height:1.6">
+          ResourceX transforms academic life by unifying resource sharing, peer borrowing, and second-hand campus commerce into one transparent, verified campus ecosystem.
+        </p>
+      </div>
+    </section>
+
+    <!-- Impact Numbers -->
+    <div class="container" style="margin-top:-32px;margin-bottom:var(--space-12)">
+      <div class="grid grid-cols-4" style="gap:var(--space-4)">
+        <div class="stat-pill shadow-md">
+          <div style="font-size:var(--text-3xl);font-weight:800;color:var(--primary)">1,850+</div>
+          <div class="text-sm text-muted">Shared Resources</div>
+        </div>
+        <div class="stat-pill shadow-md">
+          <div style="font-size:var(--text-3xl);font-weight:800;color:var(--accent)">4,200+</div>
+          <div class="text-sm text-muted">Student & Faculty Users</div>
+        </div>
+        <div class="stat-pill shadow-md">
+          <div style="font-size:var(--text-3xl);font-weight:800;color:var(--color-success-600)">$85,000+</div>
+          <div class="text-sm text-muted">Saved on Course Materials</div>
+        </div>
+        <div class="stat-pill shadow-md">
+          <div style="font-size:var(--text-3xl);font-weight:800;color:var(--color-warning-600)">4.9 / 5</div>
+          <div class="text-sm text-muted">Campus Trust Rating</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- The 4 Core Pillars -->
+    <section class="section" style="padding-top:0">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">The Four Core Pillars</h2>
+          <p class="section-subtitle">Engineered specifically to solve academic resource fragmentation and lower student costs.</p>
+        </div>
+
+        <div class="grid grid-cols-2" style="gap:var(--space-6)">
+          <div class="pillar-card">
+            <div style="width:48px;height:48px;border-radius:var(--radius-lg);background:var(--color-primary-100);color:var(--color-primary-600);display:flex;align-items:center;justify-content:center;margin-bottom:var(--space-4);font-size:1.5rem">
+              🏛️
+            </div>
+            <h3 style="font-size:var(--text-xl);font-weight:700;margin-bottom:var(--space-2)">1. Unified Resource Platform</h3>
+            <p style="color:var(--text-secondary);line-height:1.6">
+              No more searching across disparate notice boards, group chats, or departmental silos. Access textbooks, lab equipment, microcontrollers, calculators, lecture summaries, and tools in a single unified catalog.
+            </p>
+          </div>
+
+          <div class="pillar-card">
+            <div style="width:48px;height:48px;border-radius:var(--radius-lg);background:var(--color-teal-100);color:var(--color-teal-600);display:flex;align-items:center;justify-content:center;margin-bottom:var(--space-4);font-size:1.5rem">
+              ⚡
+            </div>
+            <h3 style="font-size:var(--text-xl);font-weight:700;margin-bottom:var(--space-2)">2. Easy & Smart Discovery</h3>
+            <p style="color:var(--text-secondary);line-height:1.6">
+              Search by course code, professor, subject, or tag. Need specialized parts for a capstone project? Submit your requirement and our automated matching algorithm finds peers who possess exactly what you need.
+            </p>
+          </div>
+
+          <div class="pillar-card">
+            <div style="width:48px;height:48px;border-radius:var(--radius-lg);background:var(--color-warning-100);color:var(--color-warning-600);display:flex;align-items:center;justify-content:center;margin-bottom:var(--space-4);font-size:1.5rem">
+              ♻️
+            </div>
+            <h3 style="font-size:var(--text-xl);font-weight:700;margin-bottom:var(--space-2)">3. Better Resource Utilization</h3>
+            <p style="color:var(--text-secondary);line-height:1.6">
+              Costly lab apparatus and textbooks often sit idle after final exams. ResourceX revitalizes campus inventory by driving circular sharing, reducing academic waste, and saving students hundreds of dollars every semester.
+            </p>
+          </div>
+
+          <div class="pillar-card">
+            <div style="width:48px;height:48px;border-radius:var(--radius-lg);background:var(--color-success-100);color:var(--color-success-600);display:flex;align-items:center;justify-content:center;margin-bottom:var(--space-4);font-size:1.5rem">
+              🤝
+            </div>
+            <h3 style="font-size:var(--text-xl);font-weight:700;margin-bottom:var(--space-2)">4. Collaborative Campus Community</h3>
+            <p style="color:var(--text-secondary);line-height:1.6">
+              Built for the campus community. With verified student and faculty identities, peer reviews, clear return schedules, and safe handover points, ResourceX fosters mutual trust and academic solidarity.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Campus Values / Academic Integrity -->
+    <section class="section" style="background:var(--bg-surface);border-top:1px solid var(--border-color);border-bottom:1px solid var(--border-color)">
+      <div class="container" style="max-width:900px">
+        <h2 style="font-size:var(--text-2xl);font-weight:700;text-align:center;margin-bottom:var(--space-6)">Committed to Academic Integrity & Sustainability</h2>
+        <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+          <div style="display:flex;gap:var(--space-4);align-items:flex-start">
+            <div style="font-size:1.5rem;line-height:1">🛡️</div>
+            <div>
+              <h4 style="font-weight:600;margin-bottom:4px">Verified Campus Members Only</h4>
+              <p class="text-secondary text-sm">Users can register directly with their personal email address, with community ratings and reviews to build trust.</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:var(--space-4);align-items:flex-start">
+            <div style="font-size:1.5rem;line-height:1">📚</div>
+            <div>
+              <h4 style="font-weight:600;margin-bottom:4px">Strict Policy on Permitted Materials</h4>
+              <p class="text-secondary text-sm">ResourceX adheres to copyright laws and campus codes of conduct. Shared digital resources are restricted to authorized student lecture summaries, open-source code, and permitted notes.</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:var(--space-4);align-items:flex-start">
+            <div style="font-size:1.5rem;line-height:1">🌱</div>
+            <div>
+              <h4 style="font-weight:600;margin-bottom:4px">Zero Campus Waste Target</h4>
+              <p class="text-secondary text-sm">By prolonging the lifecycle of academic equipment and textbooks, our campus saves tons of paper and electronic waste every academic year.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Ready to join CTA -->
+    <section class="section" style="text-align:center">
+      <div class="container" style="max-width:600px">
+        <h2 style="font-size:var(--text-2xl);font-weight:700;margin-bottom:var(--space-3)">Be Part of the Campus Movement</h2>
+        <p class="text-secondary" style="margin-bottom:var(--space-6)">Have books or lab gear you're not using right now? Share or lend them to peers today.</p>
+        <div style="display:flex;gap:var(--space-3);justify-content:center">
+          <a href="register.html" class="btn btn-primary btn-lg">Join ResourceX</a>
+          <a href="browse.html" class="btn btn-outline btn-lg">Explore Catalog</a>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/demo-data.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/common.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    initNavbar();
+    initFooter();
+  });
+</script>
+</body>
+</html>

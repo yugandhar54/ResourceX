@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student & Faculty Dashboard – ResourceX</title>
+  <meta name="description" content="Manage your campus resources, borrow requests, active reservations, transactions, and campus matches."/>
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/global.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/dashboard.css"/>
+</head>
+<body>
+<div class="page-wrapper">
+  <div class="dashboard-layout">
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar" id="dashboard-sidebar" aria-label="Dashboard navigation"></aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-content">
+      <!-- Content Header -->
+      <div class="dashboard-content-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:var(--space-4)">
+        <div>
+          <h1 id="welcome-heading">Welcome back, <span id="user-display-name">Student</span>!</h1>
+          <p class="text-secondary" id="welcome-subtext">Manage your campus listings, active borrowings, and requirement matches.</p>
+        </div>
+        <div style="display:flex;gap:var(--space-2)">
+          <a href="create-listing.html" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            Share Resource
+          </a>
+          <a href="requirements.html" class="btn btn-outline">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Post Requirement
+          </a>
+        </div>
+      </div>
+
+
+
+      <!-- Quick Action Buttons -->
+      <div class="quick-actions" style="margin-bottom:var(--space-8)">
+        <a href="create-listing.html" class="quick-action-btn">
+          <div class="quick-action-icon" style="background:var(--color-primary-100);color:var(--color-primary-600)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          </div>
+          <span class="quick-action-label">Share a Resource</span>
+        </a>
+        <a href="browse.html" class="quick-action-btn">
+          <div class="quick-action-icon" style="background:var(--color-teal-100);color:var(--color-teal-600)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <span class="quick-action-label">Find a Resource</span>
+        </a>
+        <a href="requirements.html" class="quick-action-btn">
+          <div class="quick-action-icon" style="background:var(--color-warning-100);color:var(--color-warning-600)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <span class="quick-action-label">Submit Requirement</span>
+        </a>
+        <a href="reservations.html" class="quick-action-btn">
+          <div class="quick-action-icon" style="background:var(--color-success-100);color:var(--color-success-600)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <span class="quick-action-label">View Reservations</span>
+        </a>
+      </div>
+
+      <!-- Metric Cards Grid -->
+      <div class="grid grid-cols-4" style="gap:var(--space-4);margin-bottom:var(--space-8)" id="dashboard-metrics-grid">
+        <div class="card" style="padding:var(--space-5)">
+          <div class="text-xs text-muted" style="text-transform:uppercase;font-weight:600">My Listed Resources</div>
+          <div style="font-size:var(--text-3xl);font-weight:800;color:var(--primary);margin-top:var(--space-1)" id="stat-listed">0</div>
+          <div class="text-xs text-secondary" style="margin-top:var(--space-1)">3 available • 1 reserved</div>
+        </div>
+        <div class="card" style="padding:var(--space-5)">
+          <div class="text-xs text-muted" style="text-transform:uppercase;font-weight:600">Active Borrowings</div>
+          <div style="font-size:var(--text-3xl);font-weight:800;color:var(--accent);margin-top:var(--space-1)" id="stat-borrowed">0</div>
+          <div class="text-xs text-secondary" style="margin-top:var(--space-1)">Due back within 7 days</div>
+        </div>
+        <div class="card" style="padding:var(--space-5)">
+          <div class="text-xs text-muted" style="text-transform:uppercase;font-weight:600">Pending Requests</div>
+          <div style="font-size:var(--text-3xl);font-weight:800;color:var(--color-warning-600);margin-top:var(--space-1)" id="stat-pending">0</div>
+          <div class="text-xs text-secondary" style="margin-top:var(--space-1)">Requires your approval</div>
+        </div>
+        <div class="card" style="padding:var(--space-5)">
+          <div class="text-xs text-muted" style="text-transform:uppercase;font-weight:600">Completed Transactions</div>
+          <div style="font-size:var(--text-3xl);font-weight:800;color:var(--color-success-600);margin-top:var(--space-1)" id="stat-completed">0</div>
+          <div class="text-xs text-secondary" style="margin-top:var(--space-1)">Shared, returned, or sold</div>
+        </div>
+      </div>
+
+      <!-- Secondary Metrics Row -->
+      <div class="grid grid-cols-3" style="gap:var(--space-4);margin-bottom:var(--space-8)">
+        <div class="card" style="padding:var(--space-4);display:flex;align-items:center;gap:var(--space-4)">
+          <div style="font-size:2rem">🏷️</div>
+          <div>
+            <div style="font-size:var(--text-lg);font-weight:700" id="stat-sale-items">2 Items</div>
+            <div class="text-xs text-muted">Currently Listed for Sale</div>
+          </div>
+        </div>
+        <div class="card" style="padding:var(--space-4);display:flex;align-items:center;gap:var(--space-4)">
+          <div style="font-size:2rem">💖</div>
+          <div>
+            <div style="font-size:var(--text-lg);font-weight:700" id="stat-wishlist">4 Items</div>
+            <div class="text-xs text-muted">Saved to Wishlist</div>
+          </div>
+        </div>
+        <div class="card" style="padding:var(--space-4);display:flex;align-items:center;gap:var(--space-4)">
+          <div style="font-size:2rem">🔔</div>
+          <div>
+            <div style="font-size:var(--text-lg);font-weight:700" id="stat-unread-notifs">3 New</div>
+            <div class="text-xs text-muted">Unread Campus Notifications</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Two-Column Section: Active Reservations & My Listed Resources -->
+      <div class="grid grid-cols-2" style="gap:var(--space-6);margin-bottom:var(--space-8)">
+        <!-- Active Reservations / Borrowings -->
+        <div class="card" style="padding:var(--space-6)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-4)">
+            <h3 style="font-size:var(--text-md);font-weight:700">Active & Pending Reservations</h3>
+            <a href="reservations.html" class="text-xs text-primary font-semibold">View all →</a>
+          </div>
+          <div id="dashboard-reservations-list" style="display:flex;flex-direction:column;gap:var(--space-3)">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Recent Activity Feed -->
+        <div class="card" style="padding:var(--space-6)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-4)">
+            <h3 style="font-size:var(--text-md);font-weight:700">Recent Campus Activity</h3>
+            <a href="notifications.html" class="text-xs text-primary font-semibold">Notifications →</a>
+          </div>
+          <div id="dashboard-activity-feed" style="display:flex;flex-direction:column;gap:var(--space-3)">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- My Listed Resources Quick View -->
+      <div class="card" style="padding:var(--space-6)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-4)">
+          <div>
+            <h3 style="font-size:var(--text-md);font-weight:700">My Listed Resources</h3>
+            <p class="text-xs text-muted">Active items and study materials you are sharing on campus</p>
+          </div>
+          <div style="display:flex;gap:var(--space-2)">
+            <a href="my-resources.html" class="btn btn-outline btn-sm">Manage All</a>
+            <a href="create-listing.html" class="btn btn-primary btn-sm">+ Add New</a>
+          </div>
+        </div>
+        <div class="grid grid-cols-3" style="gap:var(--space-4)" id="my-resources-preview-grid">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/demo-data.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/common.js"></script>
+<script src="../js/dashboard.js"></script>
+</body>
+</html>

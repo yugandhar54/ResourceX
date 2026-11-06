@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Transaction History – ResourceX</title>
+  <meta name="description" content="View your historical campus resource transactions, peer borrowings, lending logs, and item exchanges on ResourceX."/>
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/global.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/dashboard.css"/>
+</head>
+<body>
+<div class="page-wrapper">
+  <div class="dashboard-layout">
+    <aside class="dashboard-sidebar" id="dashboard-sidebar" aria-label="Dashboard navigation"></aside>
+
+    <main class="dashboard-content">
+      <div class="dashboard-content-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:var(--space-4)">
+        <div>
+          <h1>Transaction History & Exchange Logs</h1>
+          <p class="text-secondary">Official records of all peer borrowings, equipment lending, and campus marketplace exchanges.</p>
+        </div>
+        <div style="display:flex;gap:var(--space-2)">
+          <button class="btn btn-outline btn-sm" onclick="exportTransactionsCSV()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export Log
+          </button>
+        </div>
+      </div>
+
+
+
+      <!-- Filters & Search Toolbar -->
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--space-4);margin-bottom:var(--space-6)">
+        <div class="tabs" style="border:none;margin:0">
+          <button class="tab-btn active" id="tab-tx-all" onclick="filterTransactions('all')">All Transactions</button>
+          <button class="tab-btn" id="tab-tx-borrow" onclick="filterTransactions('borrow')">Borrowings</button>
+          <button class="tab-btn" id="tab-tx-lend" onclick="filterTransactions('lend')">Lendings</button>
+          <button class="tab-btn" id="tab-tx-buy" onclick="filterTransactions('buy')">Purchases</button>
+          <button class="tab-btn" id="tab-tx-sell" onclick="filterTransactions('sell')">Sales</button>
+        </div>
+
+        <input type="text" id="tx-search" class="form-control" placeholder="Search by item or peer name..." style="width:240px;height:38px" oninput="renderTransactions()"/>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loading-state" style="padding:var(--space-12) 0;text-align:center;">
+        <div class="spinner spinner-lg" style="margin:0 auto var(--space-4)"></div>
+        <p class="text-muted">Loading transaction records...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="hidden" style="padding:var(--space-12) 0;text-align:center;">
+        <div style="font-size:3rem;margin-bottom:var(--space-3)">💳</div>
+        <h3>No Transactions Recorded</h3>
+        <p class="text-muted text-sm" style="margin-bottom:var(--space-6)">No transaction records match your active filter.</p>
+      </div>
+
+      <!-- Transactions Table -->
+      <div class="card" id="transactions-card" style="overflow-x:auto;padding:0">
+        <table class="table" style="width:100%;margin:0">
+          <thead>
+            <tr>
+              <th>Tx ID</th>
+              <th>Type</th>
+              <th>Resource</th>
+              <th>Peer / Counterpart</th>
+              <th>Date</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th style="text-align:right">Receipt</th>
+            </tr>
+          </thead>
+          <tbody id="transactions-tbody">
+            <!-- Populated via JS -->
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal: Transaction Receipt View -->
+<div class="modal-backdrop" id="modal-receipt">
+  <div class="modal" role="dialog" aria-modal="true" style="max-width:480px">
+    <div class="modal-header">
+      <h3 class="modal-title">Transaction Receipt</h3>
+      <button class="modal-close" onclick="closeReceiptModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="receipt-modal-content">
+      <!-- Populated via JS -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeReceiptModal()">Close</button>
+      <button class="btn btn-primary" onclick="window.print()">Print Receipt</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/demo-data.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/common.js"></script>
+<script src="../js/transactions.js"></script>
+</body>
+</html>

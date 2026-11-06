@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Resource Details – ResourceX</title>
+  <meta name="description" content="Detailed information, availability, ratings, and borrow/purchase options for academic resources on campus."/>
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/global.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/marketplace.css"/>
+  <style>
+    .details-layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: var(--space-8);
+      margin-top: var(--space-6);
+      margin-bottom: var(--space-12);
+    }
+    @media (max-width: 992px) {
+      .details-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    .gallery-container {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      margin-bottom: var(--space-6);
+    }
+    .gallery-main {
+      width: 100%;
+      height: 380px;
+      background: var(--bg-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .gallery-main img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    .gallery-thumbs {
+      display: flex;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      border-top: 1px solid var(--border-color);
+      overflow-x: auto;
+    }
+    .gallery-thumb {
+      width: 64px;
+      height: 64px;
+      border-radius: var(--radius-md);
+      border: 2px solid transparent;
+      overflow: hidden;
+      cursor: pointer;
+      flex-shrink: 0;
+      background: var(--bg-muted);
+    }
+    .gallery-thumb.active {
+      border-color: var(--primary);
+    }
+    .gallery-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .action-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      position: sticky;
+      top: 90px;
+      box-shadow: var(--shadow-md);
+    }
+    .meta-spec-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: var(--space-4);
+      margin: var(--space-6) 0;
+      padding: var(--space-4);
+      background: var(--bg-muted);
+      border-radius: var(--radius-lg);
+    }
+    .meta-spec-item {
+      display: flex;
+      flex-direction: column;
+    }
+    .meta-spec-label {
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    .meta-spec-val {
+      font-weight: 600;
+      font-size: var(--text-sm);
+      color: var(--text-primary);
+      margin-top: 2px;
+    }
+    .owner-box {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      margin-top: var(--space-6);
+    }
+    .review-item {
+      padding: var(--space-4) 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .review-item:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrapper">
+  <main class="main-content">
+    <div class="page-header" style="background:var(--bg-surface);border-bottom:1px solid var(--border-color);padding:var(--space-4) 0;">
+      <div class="container">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="../index.html">Home</a>
+          <span class="breadcrumb-separator">/</span>
+          <a href="browse.html">Browse</a>
+          <span class="breadcrumb-separator">/</span>
+          <span id="breadcrumb-title" class="breadcrumb-current">Resource Details</span>
+        </nav>
+      </div>
+    </div>
+
+    <div class="container">
+      <div id="loading-state" style="padding:var(--space-12) 0;text-align:center;">
+        <div class="spinner spinner-lg" style="margin:0 auto var(--space-4)"></div>
+        <p class="text-muted">Loading resource details...</p>
+      </div>
+
+      <div id="error-state" class="hidden" style="padding:var(--space-12) 0;text-align:center;">
+        <div style="font-size:3rem;margin-bottom:var(--space-3)">📦</div>
+        <h2>Resource Not Found</h2>
+        <p class="text-muted" style="margin-bottom:var(--space-6)">The academic resource you are looking for does not exist or may have been removed.</p>
+        <a href="browse.html" class="btn btn-primary">Browse All Resources</a>
+      </div>
+
+      <div id="content-state" class="hidden">
+        <div class="details-layout">
+          <!-- Left Column: Media, Details, Specs, Reviews -->
+          <div class="details-main">
+            <div class="gallery-container">
+              <div class="gallery-main" id="gallery-main-view">
+                <!-- Image or placeholder inserted here -->
+              </div>
+              <div class="gallery-thumbs" id="gallery-thumbs-list">
+                <!-- Thumbnails inserted here -->
+              </div>
+            </div>
+
+            <!-- Header and Badges -->
+            <div style="margin-bottom:var(--space-4)">
+              <div style="display:flex;gap:var(--space-2);flex-wrap:wrap;margin-bottom:var(--space-3)" id="badge-container">
+                <!-- Badges -->
+              </div>
+              <h1 id="resource-title" style="font-size:var(--text-2xl);font-weight:700;line-height:1.25;margin-bottom:var(--space-2)"></h1>
+              <div style="display:flex;align-items:center;gap:var(--space-4);color:var(--text-secondary);font-size:var(--text-sm)">
+                <span id="resource-department"></span>
+                <span>•</span>
+                <span id="resource-date"></span>
+                <span>•</span>
+                <div style="display:flex;align-items:center;gap:var(--space-1)" id="rating-stars-summary"></div>
+              </div>
+            </div>
+
+            <!-- Specs Grid -->
+            <div class="meta-spec-grid" id="spec-grid">
+              <!-- Key metadata specs -->
+            </div>
+
+            <!-- Description -->
+            <div class="card" style="margin-bottom:var(--space-6);padding:var(--space-6)">
+              <h3 style="font-size:var(--text-lg);font-weight:600;margin-bottom:var(--space-3)">About this Resource</h3>
+              <div id="resource-description" style="line-height:1.7;color:var(--text-secondary);white-space:pre-line"></div>
+              
+              <div style="margin-top:var(--space-6)" id="tags-wrapper">
+                <h4 style="font-size:var(--text-sm);font-weight:600;margin-bottom:var(--space-2);color:var(--text-muted)">Tags & Keywords</h4>
+                <div style="display:flex;gap:var(--space-2);flex-wrap:wrap" id="tags-list"></div>
+              </div>
+            </div>
+
+            <!-- Digital file download info / Physical location details -->
+            <div class="card" id="fulfillment-card" style="margin-bottom:var(--space-6);padding:var(--space-6)">
+              <!-- Dynamic based on physical/digital -->
+            </div>
+
+            <!-- Reviews Section -->
+            <div class="card" style="padding:var(--space-6);margin-bottom:var(--space-6)">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-6)">
+                <div>
+                  <h3 style="font-size:var(--text-lg);font-weight:600;margin:0">Ratings & Community Reviews</h3>
+                  <div style="font-size:var(--text-sm);color:var(--text-muted);margin-top:2px" id="reviews-count-text">Verified campus interactions</div>
+                </div>
+                <button class="btn btn-outline btn-sm" id="btn-add-review" onclick="openReviewModal()">Write a Review</button>
+              </div>
+
+              <div id="reviews-list">
+                <!-- Reviews populated here -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Actions, Price, Owner -->
+          <div class="details-sidebar">
+            <div class="action-card">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:var(--space-4)">
+                <div>
+                  <span style="font-size:var(--text-xs);text-transform:uppercase;color:var(--text-muted);font-weight:600;display:block">Exchange Mode</span>
+                  <span id="sidebar-exchange-label" style="font-weight:600;font-size:var(--text-md)"></span>
+                </div>
+                <div style="text-align:right">
+                  <div id="sidebar-price" style="font-size:var(--text-2xl);font-weight:700;color:var(--primary)"></div>
+                  <div id="sidebar-deposit" style="font-size:var(--text-xs);color:var(--text-muted)"></div>
+                </div>
+              </div>
+
+              <!-- Primary Action Buttons -->
+              <div id="primary-action-container" style="display:flex;flex-direction:column;gap:var(--space-3);margin-bottom:var(--space-4)">
+                <!-- Request to borrow / Reserve / Buy / Download -->
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-2);margin-bottom:var(--space-6)">
+                <button class="btn btn-ghost btn-sm" id="btn-wishlist-toggle" onclick="handleDetailsWishlist()">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="wishlist-icon"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                  <span id="wishlist-label">Save</span>
+                </button>
+                <button class="btn btn-ghost btn-sm" onclick="openReportModal()">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                  <span>Report</span>
+                </button>
+              </div>
+
+              <hr style="border:none;border-top:1px solid var(--border-color);margin:var(--space-4) 0;"/>
+
+              <!-- Owner Information -->
+              <h4 style="font-size:var(--text-xs);text-transform:uppercase;color:var(--text-muted);font-weight:600;margin-bottom:var(--space-3)">Listed By</h4>
+              <div class="owner-box" style="margin-top:0">
+                <div class="avatar avatar-md" id="owner-avatar"></div>
+                <div style="flex:1;min-width:0">
+                  <div id="owner-name" style="font-weight:600;font-size:var(--text-sm)"></div>
+                  <div id="owner-role-dept" style="font-size:var(--text-xs);color:var(--text-muted)"></div>
+                  <div id="owner-rating" style="font-size:var(--text-xs);color:var(--color-warning-600);margin-top:2px"></div>
+                </div>
+              </div>
+              <button class="btn btn-outline btn-sm" style="width:100%;margin-top:var(--space-3)" onclick="openContactOwnerModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Contact Contributor
+              </button>
+
+              <!-- Safety / Assurance Notice -->
+              <div style="margin-top:var(--space-6);padding:var(--space-3);background:var(--bg-muted);border-radius:var(--radius-md);font-size:var(--text-xs);color:var(--text-muted);display:flex;gap:var(--space-2)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;color:var(--color-primary-500)"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>Verified university campus network. Meets on-campus handover and academic integrity guidelines.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Related Resources Section -->
+        <div style="margin-bottom:var(--space-12)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-6)">
+            <div>
+              <h2 style="font-size:var(--text-xl);font-weight:700">Similar Resources You May Need</h2>
+              <p class="text-muted text-sm">More recommendations from the same department or category</p>
+            </div>
+            <a href="browse.html" class="btn btn-ghost btn-sm">Explore all →</a>
+          </div>
+          <div class="grid grid-cols-4" id="related-resources-grid"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal: Request to Borrow / Reserve -->
+<div class="modal-backdrop" id="modal-reserve">
+  <div class="modal" role="dialog" aria-modal="true" style="max-width:500px">
+    <div class="modal-header">
+      <h3 class="modal-title" id="reserve-modal-title">Request to Borrow</h3>
+      <button class="modal-close" onclick="closeModal('modal-reserve')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="text-sm text-muted" style="margin-bottom:var(--space-4)" id="reserve-modal-sub">
+        Submit a request to the owner. Once approved, you can pick up the item at the designated campus location.
+      </p>
+      <form id="reserve-form" onsubmit="handleReserveSubmit(event)">
+        <div class="form-group">
+          <label class="form-label" for="res-start-date">Required Start Date</label>
+          <input type="date" id="res-start-date" class="form-control" required/>
+        </div>
+        <div class="form-group" id="group-return-date">
+          <label class="form-label" for="res-return-date">Expected Return Date</label>
+          <input type="date" id="res-return-date" class="form-control" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="res-notes">Message / Purpose to Owner</label>
+          <textarea id="res-notes" class="form-control" rows="3" placeholder="Explain your course project or reason for borrowing..." required></textarea>
+        </div>
+        <div class="alert alert-info" style="margin-bottom:var(--space-4);font-size:var(--text-xs)">
+          <strong>Campus Guidelines:</strong> You agree to return physical resources in their stated condition before the due date.
+        </div>
+        <div class="modal-footer" style="padding:0;margin-top:var(--space-4)">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-reserve')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-reservation">Confirm Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Buy Resource -->
+<div class="modal-backdrop" id="modal-buy">
+  <div class="modal" role="dialog" aria-modal="true" style="max-width:480px">
+    <div class="modal-header">
+      <h3 class="modal-title">Purchase Academic Resource</h3>
+      <button class="modal-close" onclick="closeModal('modal-buy')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--bg-muted);padding:var(--space-4);border-radius:var(--radius-lg);margin-bottom:var(--space-4)">
+        <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-2)">
+          <span class="text-muted">Item:</span>
+          <span id="buy-item-name" style="font-weight:600"></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-2)">
+          <span class="text-muted">Price:</span>
+          <span id="buy-item-price" style="font-weight:700;color:var(--primary)"></span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span class="text-muted">Handover Location:</span>
+          <span id="buy-item-location">Campus Central Library</span>
+        </div>
+      </div>
+      <div class="alert alert-warning" style="font-size:var(--text-xs);margin-bottom:var(--space-4)">
+        <strong>Notice:</strong> This initiates a purchase request and reserves the item for you. Settlement takes place safely in-person during item inspection on campus.
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="buy-pickup-time">Preferred Handover Time</label>
+        <input type="text" id="buy-pickup-time" class="form-control" placeholder="e.g. Tomorrow 3:00 PM outside Library Room 204" required/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="buy-message">Note to Seller</label>
+        <textarea id="buy-message" class="form-control" rows="2" placeholder="Any questions or meetup instructions..."></textarea>
+      </div>
+      <div class="modal-footer" style="padding:0;margin-top:var(--space-4)">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-buy')">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="confirmPurchase()">Initiate Purchase Request</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Contact Owner -->
+<div class="modal-backdrop" id="modal-contact">
+  <div class="modal" role="dialog" aria-modal="true" style="max-width:480px">
+    <div class="modal-header">
+      <h3 class="modal-title">Contact Contributor</h3>
+      <button class="modal-close" onclick="closeModal('modal-contact')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="handleContactSubmit(event)">
+        <div class="form-group">
+          <label class="form-label">Recipient</label>
+          <input type="text" id="contact-owner-display" class="form-control" disabled/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="contact-subject">Subject</label>
+          <input type="text" id="contact-subject" class="form-control" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="contact-body">Message</label>
+          <textarea id="contact-body" class="form-control" rows="4" placeholder="Ask about condition, availability, or meetup..." required></textarea>
+        </div>
+        <div class="alert alert-info" style="font-size:var(--text-xs);margin-bottom:var(--space-4)">
+          <strong>Notice:</strong> The contributor's reply and meetup details will be forwarded directly to your personal email on file.
+        </div>
+        <div class="modal-footer" style="padding:0">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-contact')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Send Message</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Write Review -->
+<div class="modal-backdrop" id="modal-review">
+  <div class="modal" role="dialog" aria-modal="true" style="max-width:500px">
+    <div class="modal-header">
+      <h3 class="modal-title">Review Academic Resource</h3>
+      <button class="modal-close" onclick="closeModal('modal-review')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="handleReviewSubmit(event)">
+        <div class="form-group">
+          <label class="form-label">Your Rating</label>
+          <div style="display:flex;gap:var(--space-2);font-size:1.75rem;cursor:pointer;color:var(--text-muted)" id="star-picker">
+            <span onclick="setReviewRating(1)">★</span>
+            <span onclick="setReviewRating(2)">★</span>
+            <span onclick="setReviewRating(3)">★</span>
+            <span onclick="setReviewRating(4)">★</span>
+            <span onclick="setReviewRating(5)">★</span>
+          </div>
+          <input type="hidden" id="review-rating-val" value="5"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="review-comment">Review & Feedback</label>
+          <textarea id="review-comment" class="form-control" rows="3" placeholder="How was the resource condition, usefulness, or interaction with the peer?" required></textarea>
+        </div>
+        <div class="modal-footer" style="padding:0">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-review')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Review</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Report Listing -->
+<div class="modal-backdrop" id="modal-report">
+  <div class="modal" role="dialog" aria-modal="true" style="max-width:480px">
+    <div class="modal-header">
+      <h3 class="modal-title">Report Resource Listing</h3>
+      <button class="modal-close" onclick="closeModal('modal-report')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form onsubmit="handleReportSubmit(event)">
+        <div class="form-group">
+          <label class="form-label">Reason for Report</label>
+          <select class="form-control" id="report-reason" required>
+            <option value="">Select reason...</option>
+            <option value="copyright">Copyright or Academic Dishonesty</option>
+            <option value="inaccurate">Inaccurate / Misleading Description</option>
+            <option value="prohibited">Prohibited or Non-Academic Item</option>
+            <option value="spam">Spam or Duplicate Listing</option>
+            <option value="other">Other Campus Policy Violation</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="report-details">Additional Details</label>
+          <textarea id="report-details" class="form-control" rows="3" placeholder="Explain the violation for campus moderators..." required></textarea>
+        </div>
+        <div class="modal-footer" style="padding:0">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-report')">Cancel</button>
+          <button type="submit" class="btn btn-danger">Submit Report</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/demo-data.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/common.js"></script>
+<script src="../js/resource-details.js"></script>
+</body>
+</html>

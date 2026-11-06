@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Notifications – ResourceX</title>
+  <meta name="description" content="Stay updated on borrow approvals, upcoming return due dates, requirement matches, and campus alerts."/>
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/global.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/dashboard.css"/>
+</head>
+<body>
+<div class="page-wrapper">
+  <div class="dashboard-layout">
+    <aside class="dashboard-sidebar" id="dashboard-sidebar" aria-label="Dashboard navigation"></aside>
+
+    <main class="dashboard-content">
+      <div class="dashboard-content-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:var(--space-4)">
+        <div>
+          <h1>Notifications (<span id="unread-count">0</span> unread)</h1>
+          <p class="text-secondary">Track activity on your listed resources, borrow approvals, and requirement matches.</p>
+        </div>
+        <button class="btn btn-outline btn-sm" id="btn-mark-all" onclick="handleMarkAllRead()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Mark all as read
+        </button>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="notification-filter-bar" style="margin-bottom:var(--space-6);flex-wrap:wrap">
+        <button class="notif-filter-btn active" id="filter-all" onclick="filterNotifs('all')">All</button>
+        <button class="notif-filter-btn" id="filter-unread" onclick="filterNotifs('unread')">Unread</button>
+        <button class="notif-filter-btn" id="filter-reservation" onclick="filterNotifs('reservation')">Reservations</button>
+        <button class="notif-filter-btn" id="filter-match" onclick="filterNotifs('match')">Matches</button>
+        <button class="notif-filter-btn" id="filter-reminder" onclick="filterNotifs('reminder')">Return Reminders</button>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loading-state" style="padding:var(--space-12) 0;text-align:center;">
+        <div class="spinner spinner-lg" style="margin:0 auto var(--space-4)"></div>
+        <p class="text-muted">Loading notifications...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="hidden" style="padding:var(--space-16) 0;text-align:center;">
+        <div style="font-size:3rem;margin-bottom:var(--space-3)">🔔</div>
+        <h3>No Notifications</h3>
+        <p class="text-muted text-sm" style="margin-bottom:var(--space-6)">You're all caught up! New borrow requests and matches will appear here.</p>
+      </div>
+
+      <!-- Notifications Container -->
+      <div class="card" id="notifs-card" style="padding:0;overflow:hidden">
+        <div id="notifs-list">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/demo-data.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/common.js"></script>
+<script src="../js/notifications.js"></script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Submit a Requirement – ResourceX</title>
+  <meta name="description" content="Post what academic resources, components, or reference materials you need for your courses or projects and receive smart campus matches."/>
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/global.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/dashboard.css"/>
+</head>
+<body>
+<div class="page-wrapper">
+  <div class="dashboard-layout">
+    <aside class="dashboard-sidebar" id="dashboard-sidebar" aria-label="Dashboard navigation"></aside>
+
+    <main class="dashboard-content">
+      <div class="dashboard-content-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:var(--space-4)">
+        <div>
+          <h1>Submit an Academic Requirement</h1>
+          <p class="text-secondary">Can't find what you need in the catalog? Post a requirement and get matched with campus peers who have it.</p>
+        </div>
+        <a href="matches.html" class="btn btn-outline">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          View Smart Matches
+        </a>
+      </div>
+
+      <div class="grid grid-cols-3" style="gap:var(--space-8)">
+        <!-- Form Column (2/3) -->
+        <div style="grid-column: span 2">
+          <div class="card" style="padding:var(--space-8)">
+            <form id="requirement-form" onsubmit="handleRequirementSubmit(event)">
+              <div class="form-group">
+                <label class="form-label" for="req-title">What resource do you need? *</label>
+                <input type="text" id="req-title" class="form-control" placeholder="e.g. Arduino Uno starter kit & digital tutorial for IoT project" required/>
+                <small class="text-muted" style="font-size:var(--text-xs);margin-top:4px;display:block">
+                  Be descriptive so our rule-based matching algorithm can find the best items for you.
+                </small>
+              </div>
+
+              <div class="grid grid-cols-2" style="gap:var(--space-4)">
+                <div class="form-group">
+                  <label class="form-label" for="req-category">Subject Category *</label>
+                  <select id="req-category" class="form-control" required>
+                    <option value="">Select Category...</option>
+                    <option value="electronics">Electronics & Kits</option>
+                    <option value="books">Textbooks & References</option>
+                    <option value="notes">Lecture Notes & Cheatsheets</option>
+                    <option value="lab">Lab Apparatus & Instruments</option>
+                    <option value="calculators">Calculators & Computing</option>
+                    <option value="other">Other Academic Supplies</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="req-date">Needed By Date *</label>
+                  <input type="date" id="req-date" class="form-control" required/>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="req-desc">Detailed Description & Project Context *</label>
+                <textarea id="req-desc" class="form-control" rows="4" placeholder="Mention course code (e.g. CS440), specific sensors/editions needed, or duration of project..." required></textarea>
+              </div>
+
+              <div class="grid grid-cols-2" style="gap:var(--space-4)">
+                <div class="form-group">
+                  <label class="form-label">Preferred Resource Type</label>
+                  <select id="req-type" class="form-control">
+                    <option value="any">Any (Physical or Digital)</option>
+                    <option value="physical">Physical Item Only</option>
+                    <option value="digital">Digital Document Only</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="req-budget">Optional Max Budget ($)</label>
+                  <input type="number" id="req-budget" class="form-control" min="0" placeholder="e.g. 20 (leave blank for free only)"/>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="req-tags">Keywords or Components (comma separated)</label>
+                <input type="text" id="req-tags" class="form-control" placeholder="e.g. arduino, sensors, iot, breadboard, c++"/>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Preferred Exchange Modes (Select all acceptable)</label>
+                <div style="display:flex;gap:var(--space-4);flex-wrap:wrap">
+                  <label class="form-check">
+                    <input type="checkbox" id="mode-free" checked/>
+                    <span>Free Sharing</span>
+                  </label>
+                  <label class="form-check">
+                    <input type="checkbox" id="mode-borrow" checked/>
+                    <span>Peer Borrowing</span>
+                  </label>
+                  <label class="form-check">
+                    <input type="checkbox" id="mode-buy" checked/>
+                    <span>Buy Used</span>
+                  </label>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-lg" id="btn-submit-req" style="margin-top:var(--space-4)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                Post Requirement & Find Matches
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Right Side: Recent Requirements & Explanation -->
+        <div>
+          <div class="card" style="padding:var(--space-6);margin-bottom:var(--space-6)">
+            <h3 style="font-size:var(--text-base);font-weight:700;margin-bottom:var(--space-2)">How Smart Matching Works</h3>
+            <p class="text-secondary text-xs" style="line-height:1.6;margin-bottom:var(--space-3)">
+              ResourceX scans the catalog in real-time using keyword overlap, category taxonomy, tags, and campus department matching to rank the best available resources.
+            </p>
+            <div class="alert alert-info" style="font-size:var(--text-xs);margin:0">
+              <strong>Matching Notice:</strong> The university catalog is continuously indexed to surface real-time peer matches and send email alerts to your personal address.
+            </div>
+          </div>
+
+          <div class="card" style="padding:var(--space-6)">
+            <h3 style="font-size:var(--text-base);font-weight:700;margin-bottom:var(--space-4)">Your Active Requirements</h3>
+            <div id="user-requirements-list" style="display:flex;flex-direction:column;gap:var(--space-3)">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/demo-data.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/common.js"></script>
+<script src="../js/matching.js"></script>
+<script src="../js/requirements.js"></script>
+</body>
+</html>

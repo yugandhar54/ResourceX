@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reservations & Borrowings – ResourceX</title>
+  <meta name="description" content="Manage your campus reservations, incoming borrow requests, return dates, and peer handovers."/>
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/global.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/dashboard.css"/>
+</head>
+<body>
+<div class="page-wrapper">
+  <div class="dashboard-layout">
+    <aside class="dashboard-sidebar" id="dashboard-sidebar" aria-label="Dashboard navigation"></aside>
+
+    <main class="dashboard-content">
+      <div class="dashboard-content-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:var(--space-4)">
+        <div>
+          <h1>Reservations & Borrowing Tracking</h1>
+          <p class="text-secondary">Track your active loans, review incoming peer requests, and verify campus returns on time.</p>
+        </div>
+        <a href="browse.html" class="btn btn-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Borrow New Resource
+        </a>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="tabs" style="margin-bottom:var(--space-6);overflow-x:auto">
+        <button class="tab-btn active" id="tab-all" onclick="filterReservations('all')">All (<span id="count-all">0</span>)</button>
+        <button class="tab-btn" id="tab-incoming" onclick="filterReservations('incoming')">Incoming Requests (<span id="count-incoming">0</span>)</button>
+        <button class="tab-btn" id="tab-sent" onclick="filterReservations('sent')">Requests Sent (<span id="count-sent">0</span>)</button>
+        <button class="tab-btn" id="tab-active" onclick="filterReservations('active')">Active Borrowings (<span id="count-active">0</span>)</button>
+        <button class="tab-btn" id="tab-returned" onclick="filterReservations('returned')">Returned (<span id="count-returned">0</span>)</button>
+        <button class="tab-btn" id="tab-cancelled" onclick="filterReservations('cancelled')">Cancelled (<span id="count-cancelled">0</span>)</button>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loading-state" style="padding:var(--space-12) 0;text-align:center;">
+        <div class="spinner spinner-lg" style="margin:0 auto var(--space-4)"></div>
+        <p class="text-muted">Loading reservations...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="hidden" style="padding:var(--space-12) 0;text-align:center;">
+        <div style="font-size:3rem;margin-bottom:var(--space-3)">📅</div>
+        <h3>No Reservations Found</h3>
+        <p class="text-muted text-sm" style="margin-bottom:var(--space-6);max-width:400px;margin-left:auto;margin-right:auto">
+          No records match this status filter. Browse academic resources to request borrowing.
+        </p>
+        <a href="browse.html" class="btn btn-outline">Explore Campus Catalog</a>
+      </div>
+
+      <!-- Reservation Cards Container -->
+      <div id="reservations-container" style="display:flex;flex-direction:column;gap:var(--space-4)">
+        <!-- Populated via JS -->
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/demo-data.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/common.js"></script>
+<script src="../js/reservations.js"></script>
+</body>
+</html>

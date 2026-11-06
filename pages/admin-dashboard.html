@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard – ResourceX</title>
+  <meta name="description" content="Campus administrator dashboard for monitoring academic resource listings, moderation, user accounts, and platform utilization."/>
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/global.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/dashboard.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="page-wrapper">
+  <div class="dashboard-layout">
+    <aside class="dashboard-sidebar" id="dashboard-sidebar" aria-label="Dashboard navigation"></aside>
+
+    <main class="dashboard-content">
+      <!-- Admin Header -->
+      <div class="dashboard-content-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:var(--space-4)">
+        <div>
+          <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-1)">
+            <h1>Campus Administration Console</h1>
+            <span class="badge badge-primary">ADMIN PORTAL</span>
+          </div>
+          <p class="text-secondary">Overview of platform health, resource moderation queues, active student exchanges, and campus utilization.</p>
+        </div>
+        <div style="display:flex;gap:var(--space-2)">
+          <a href="admin-moderation.html" class="btn btn-primary btn-sm">
+            Review Pending (<span id="btn-pending-count">2</span>)
+          </a>
+          <a href="admin-analytics.html" class="btn btn-outline btn-sm">Full Analytics</a>
+        </div>
+      </div>
+
+
+
+      <!-- 8 Key Metrics Grid -->
+      <div class="grid grid-cols-4" style="gap:var(--space-4);margin-bottom:var(--space-8)">
+        <div class="card" style="padding:var(--space-5)">
+          <div class="text-xs text-muted" style="text-transform:uppercase;font-weight:600">Total Campus Users</div>
+          <div style="font-size:var(--text-3xl);font-weight:800;color:var(--primary);margin-top:var(--space-1)" id="adm-users-count">4,280</div>
+          <div class="text-xs text-success" style="margin-top:var(--space-1)">+142 this semester</div>
+        </div>
+
+        <div class="card" style="padding:var(--space-5)">
+          <div class="text-xs text-muted" style="text-transform:uppercase;font-weight:600">Total Resources</div>
+          <div style="font-size:var(--text-3xl);font-weight:800;color:var(--accent);margin-top:var(--space-1)" id="adm-res-count">1,845</div>
+          <div class="text-xs text-secondary" style="margin-top:var(--space-1)">Across 8 faculties</div>
+        </div>
+
+        <div class="card" style="padding:var(--space-5)">
+          <div class="text-xs text-muted" style="text-transform:uppercase;font-weight:600">Physical Items</div>
+          <div style="font-size:var(--text-3xl);font-weight:800;color:var(--color-teal-600);margin-top:var(--space-1)" id="adm-phys-count">1,120</div>
+          <div class="text-xs text-secondary" style="margin-top:var(--space-1)">Books, Kits, Apparatus</div>
+        </div>
+
+        <div class="card" style="padding:var(--space-5)">
+          <div class="text-xs text-muted" style="text-transform:uppercase;font-weight:600">Digital Resources</div>
+          <div style="font-size:var(--text-3xl);font-weight:800;color:var(--color-primary-600);margin-top:var(--space-1)" id="adm-digi-count">725</div>
+          <div class="text-xs text-secondary" style="margin-top:var(--space-1)">Permitted study guides</div>
+        </div>
+
+        <div class="card" style="padding:var(--space-5)">
+          <div class="text-xs text-muted" style="text-transform:uppercase;font-weight:600">Pending Listings</div>
+          <div style="font-size:var(--text-3xl);font-weight:800;color:var(--color-warning-600);margin-top:var(--space-1)" id="adm-pending-count">4</div>
+          <div class="text-xs text-warning" style="margin-top:var(--space-1)">Requires approval</div>
+        </div>
+
+        <div class="card" style="padding:var(--space-5)">
+          <div class="text-xs text-muted" style="text-transform:uppercase;font-weight:600">Active Reservations</div>
+          <div style="font-size:var(--text-3xl);font-weight:800;color:var(--color-teal-500);margin-top:var(--space-1)" id="adm-active-res">186</div>
+          <div class="text-xs text-secondary" style="margin-top:var(--space-1)">Currently in circulation</div>
+        </div>
+
+        <div class="card" style="padding:var(--space-5)">
+          <div class="text-xs text-muted" style="text-transform:uppercase;font-weight:600">Completed Exchanges</div>
+          <div style="font-size:var(--text-3xl);font-weight:800;color:var(--color-success-600);margin-top:var(--space-1)" id="adm-tx-count">3,490</div>
+          <div class="text-xs text-secondary" style="margin-top:var(--space-1)">Total transactions</div>
+        </div>
+
+        <div class="card" style="padding:var(--space-5)">
+          <div class="text-xs text-muted" style="text-transform:uppercase;font-weight:600">Reported Content</div>
+          <div style="font-size:var(--text-3xl);font-weight:800;color:var(--color-danger-500);margin-top:var(--space-1)" id="adm-reports-count">2</div>
+          <div class="text-xs text-danger" style="margin-top:var(--space-1)">Awaiting moderator review</div>
+        </div>
+      </div>
+
+      <!-- Quick Chart Row -->
+      <div class="grid grid-cols-2" style="gap:var(--space-6);margin-bottom:var(--space-8)">
+        <div class="chart-card" style="padding:var(--space-6)">
+          <div class="chart-card-header" style="margin-bottom:var(--space-4)">
+            <h3 class="chart-card-title">Campus Resource Distribution by Category</h3>
+          </div>
+          <div class="chart-container" style="height:260px">
+            <canvas id="chart-category"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card" style="padding:var(--space-6)">
+          <div class="chart-card-header" style="margin-bottom:var(--space-4)">
+            <h3 class="chart-card-title">Monthly Borrowing & Listing Trends</h3>
+          </div>
+          <div class="chart-container" style="height:260px">
+            <canvas id="chart-trends"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Moderation Queue Preview -->
+      <div class="card" style="padding:var(--space-6)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-4)">
+          <div>
+            <h3 style="font-size:var(--text-md);font-weight:700">Immediate Moderation Queue</h3>
+            <p class="text-xs text-muted">Review recently submitted academic listings before they become publicly searchable</p>
+          </div>
+          <a href="admin-moderation.html" class="btn btn-outline btn-sm">View All Moderation Cases →</a>
+        </div>
+
+        <div id="quick-moderation-list" style="display:flex;flex-direction:column;gap:var(--space-3)">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/demo-data.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/common.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    initAdminDashboard();
+  });
+</script>
+</body>
+</html>

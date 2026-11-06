@@ -1,0 +1,125 @@
+/* ============================================================
+   ResourceX – Responsive Styles & Breakpoints
+   ============================================================ */
+
+/* ── Tablets and Below (< 992px) ── */
+@media (max-width: 992px) {
+  .dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 280px;
+    height: 100vh;
+    z-index: var(--z-modal);
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-xl);
+    transition: left var(--transition-base);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dashboard-sidebar.open {
+    left: 0;
+  }
+
+  .dashboard-content {
+    padding: var(--space-4);
+  }
+
+  .quick-actions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .listing-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .details-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .contact-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .profile-header-info {
+    text-align: center;
+  }
+
+  .profile-stats-row {
+    justify-content: center;
+  }
+}
+
+/* ── Mobile Devices (< 768px) ── */
+@media (max-width: 768px) {
+  .navbar .nav-links {
+    display: none;
+  }
+
+  .quick-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .grid-cols-4 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .table th, .table td {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--text-xs);
+  }
+
+  .modal {
+    width: 95% !important;
+    margin: var(--space-2);
+  }
+
+  .dashboard-content-header h1 {
+    font-size: var(--text-xl);
+  }
+
+  .section {
+    padding: var(--space-8) 0;
+  }
+
+  .hero-title {
+    font-size: var(--text-2xl) !important;
+  }
+}
+
+/* ── Small Phones (< 480px) ── */
+@media (max-width: 480px) {
+  .btn-lg {
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--text-sm);
+  }
+
+  .exchange-mode-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .type-selector {
+    flex-direction: column;
+  }
+}

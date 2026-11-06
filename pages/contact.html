@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contact & Help – ResourceX</title>
+  <meta name="description" content="Get help with campus resource sharing, dispute resolution, technical support, or report a policy violation on ResourceX."/>
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/global.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
+  <style>
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: var(--space-8);
+      margin-top: var(--space-6);
+      margin-bottom: var(--space-12);
+    }
+    @media (max-width: 900px) {
+      .contact-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .info-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+    }
+    .info-item {
+      display: flex;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+      align-items: flex-start;
+    }
+    .info-item:last-child {
+      margin-bottom: 0;
+    }
+    .info-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-md);
+      background: var(--color-primary-100);
+      color: var(--color-primary-600);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    [data-theme="dark"] .info-icon {
+      background: var(--color-primary-900);
+      color: var(--color-primary-300);
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrapper">
+  <main class="main-content">
+    <section style="background:var(--bg-surface);border-bottom:1px solid var(--border-color);padding:var(--space-10) 0;text-align:center;">
+      <div class="container" style="max-width:680px">
+        <span class="badge badge-primary" style="margin-bottom:var(--space-2)">CAMPUS SUPPORT</span>
+        <h1 style="font-size:var(--text-3xl);font-weight:800;letter-spacing:-0.03em;margin-bottom:var(--space-2)">
+          Contact & Help Desk
+        </h1>
+        <p class="text-secondary text-sm">
+          Need assistance with a borrow request, item condition dispute, or have questions about sharing guidelines? Our campus support team is here for you.
+        </p>
+      </div>
+    </section>
+
+    <div class="container">
+      <div class="contact-grid">
+        <!-- Left: Form -->
+        <div class="card" style="padding:var(--space-8)">
+          <h2 style="font-size:var(--text-xl);font-weight:700;margin-bottom:var(--space-2)">Send Us a Message</h2>
+          <p class="text-muted text-sm" style="margin-bottom:var(--space-6)">Inquiries are typically answered by student moderators within 24 hours.</p>
+
+          <form id="contact-form" onsubmit="handleSupportSubmit(event)">
+            <div class="grid grid-cols-2" style="gap:var(--space-4)">
+              <div class="form-group">
+                <label class="form-label" for="support-name">Your Full Name</label>
+                <input type="text" id="support-name" class="form-control" placeholder="Alex Morgan" required/>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="support-email">Campus Email</label>
+                <input type="email" id="support-email" class="form-control" placeholder="alex.morgan@university.edu" required/>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2" style="gap:var(--space-4)">
+              <div class="form-group">
+                <label class="form-label" for="support-role">Your Campus Role</label>
+                <select id="support-role" class="form-control" required>
+                  <option value="student">Undergraduate / Graduate Student</option>
+                  <option value="faculty">Faculty / Instructor</option>
+                  <option value="staff">Campus Staff / Librarian</option>
+                  <option value="other">Other Campus Affiliate</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="support-category">Inquiry Subject</label>
+                <select id="support-category" class="form-control" required>
+                  <option value="general">General Question</option>
+                  <option value="dispute">Borrowing Dispute / Late Return</option>
+                  <option value="moderation">Report Inappropriate Listing</option>
+                  <option value="tech">Platform Bug / Technical Problem</option>
+                  <option value="partnership">Departmental Resource Sharing</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="support-subject">Subject Line</label>
+              <input type="text" id="support-subject" class="form-control" placeholder="Brief summary of your inquiry..." required/>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="support-message">Message Details</label>
+              <textarea id="support-message" class="form-control" rows="5" placeholder="Provide full context, listing IDs, or relevant dates..." required></textarea>
+            </div>
+
+            <div class="alert alert-info" style="font-size:var(--text-xs);margin-bottom:var(--space-6)">
+              <strong>Student Privacy:</strong> Communications regarding disputes or moderation are kept strictly confidential between the involved parties and campus moderators.
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg" id="btn-support-submit">
+              Send Support Ticket
+            </button>
+          </form>
+        </div>
+
+        <!-- Right: Campus Directory & Office Locations -->
+        <div style="display:flex;flex-direction:column;gap:var(--space-6)">
+          <div class="info-card">
+            <h3 style="font-size:var(--text-md);font-weight:700;margin-bottom:var(--space-4)">Campus Help Desks</h3>
+            
+            <div class="info-item">
+              <div class="info-icon">📍</div>
+              <div>
+                <div style="font-weight:600;font-size:var(--text-sm)">ResourceX Student Hub</div>
+                <div style="font-size:var(--text-xs);color:var(--text-muted)">Central Library, Room 204</div>
+                <div style="font-size:var(--text-xs);color:var(--text-secondary);margin-top:2px">Mon–Fri: 9:00 AM – 6:00 PM</div>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-icon">✉️</div>
+              <div>
+                <div style="font-weight:600;font-size:var(--text-sm)">Email Support</div>
+                <div style="font-size:var(--text-xs);color:var(--primary)">support@resourcex.campus.edu</div>
+                <div style="font-size:var(--text-xs);color:var(--text-muted)">Avg. response: < 4 hours</div>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <div class="info-icon">📞</div>
+              <div>
+                <div style="font-weight:600;font-size:var(--text-sm)">Campus Helpline</div>
+                <div style="font-size:var(--text-xs);color:var(--text-secondary)">Ext. 4420 / (555) 234-5678</div>
+                <div style="font-size:var(--text-xs);color:var(--text-muted)">Mon–Sat: 8:00 AM – 8:00 PM</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-card" style="border-left:4px solid var(--color-warning-500)">
+            <h3 style="font-size:var(--text-md);font-weight:700;margin-bottom:var(--space-2)">Urgent Campus Security</h3>
+            <p class="text-xs text-secondary" style="margin-bottom:var(--space-3)">
+              For immediate physical security, missing personal property, or emergencies on campus grounds:
+            </p>
+            <div style="font-weight:700;font-size:var(--text-sm);color:var(--color-danger-600)">
+              Campus Police / Security: 911 or (555) 999-HELP
+            </div>
+          </div>
+
+          <div class="info-card" style="background:var(--bg-muted)">
+            <h4 style="font-size:var(--text-xs);text-transform:uppercase;font-weight:700;color:var(--text-muted);margin-bottom:var(--space-2)">
+              Quick Links
+            </h4>
+            <div style="display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--text-sm)">
+              <a href="how-it-works.html" class="text-primary">How Borrowing Works →</a>
+              <a href="how-it-works.html#faq-list" class="text-primary">Frequently Asked Questions →</a>
+              <a href="about.html" class="text-primary">Academic Integrity Guidelines →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/demo-data.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/common.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    initNavbar();
+    initFooter();
+    const user = Auth.getUser();
+    if (user) {
+      document.getElementById('support-name').value = user.name || '';
+      document.getElementById('support-email').value = user.email || '';
+    }
+  });
+
+  function handleSupportSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-support-submit');
+    Loading.show(btn, 'Submitting Ticket...');
+    setTimeout(() => {
+      Loading.hide(btn);
+      Toast.show('Ticket received! Our campus support team will contact you shortly.', 'success');
+      document.getElementById('contact-form').reset();
+    }, 800);
+  }
+</script>
+</body>
+</html>

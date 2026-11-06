@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Management – ResourceX Admin</title>
+  <meta name="description" content="Search campus users, manage account statuses, view roles, and handle academic conduct flags."/>
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/global.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/dashboard.css"/>
+</head>
+<body>
+<div class="page-wrapper">
+  <div class="dashboard-layout">
+    <aside class="dashboard-sidebar" id="dashboard-sidebar" aria-label="Dashboard navigation"></aside>
+
+    <main class="dashboard-content">
+      <div class="dashboard-content-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:var(--space-4)">
+        <div>
+          <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-1)">
+            <h1>Campus User Management</h1>
+            <span class="badge badge-info">ACCOUNTS</span>
+          </div>
+          <p class="text-secondary">Verify institutional email affiliations, inspect student & faculty roles, and manage account statuses.</p>
+        </div>
+      </div>
+
+      <!-- Search & Filters Toolbar -->
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--space-4);margin-bottom:var(--space-6)">
+        <div style="display:flex;gap:var(--space-3);align-items:center;flex-wrap:wrap">
+          <input type="text" id="admin-user-search" class="form-control" placeholder="Search by name, email, or student ID..." style="width:280px;height:38px" oninput="renderAdminUsersTable()"/>
+          <select id="admin-user-role-filter" class="form-control" style="width:160px;height:38px" onchange="renderAdminUsersTable()">
+            <option value="all">All Roles</option>
+            <option value="student">Students</option>
+            <option value="faculty">Faculty</option>
+            <option value="admin">Administrators</option>
+          </select>
+          <select id="admin-user-status-filter" class="form-control" style="width:160px;height:38px" onchange="renderAdminUsersTable()">
+            <option value="all">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Users Table -->
+      <div class="card" style="padding:0;overflow-x:auto">
+        <table class="table" style="width:100%;margin:0">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Campus Role</th>
+              <th>Department</th>
+              <th>Listed Items</th>
+              <th>Trust Rating</th>
+              <th>Status</th>
+              <th style="text-align:right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="admin-users-tbody">
+            <!-- Populated via JS -->
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/demo-data.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/common.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    initAdminUsers();
+  });
+</script>
+</body>
+</html>

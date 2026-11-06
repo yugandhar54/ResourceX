@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>How It Works – ResourceX</title>
+  <meta name="description" content="Learn how to share, borrow, buy, and access academic resources seamlessly on campus with ResourceX."/>
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/global.css"/>
+  <link rel="stylesheet" href="../css/layout.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/landing.css"/>
+  <style>
+    .step-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      position: relative;
+    }
+    .step-number {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-full);
+      background: var(--color-primary-100);
+      color: var(--color-primary-600);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: var(--space-4);
+    }
+    [data-theme="dark"] .step-number {
+      background: var(--color-primary-900);
+      color: var(--color-primary-300);
+    }
+    .faq-item {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-3);
+      overflow: hidden;
+    }
+    .faq-question {
+      padding: var(--space-4) var(--space-6);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      font-size: var(--text-md);
+    }
+    .faq-answer {
+      padding: 0 var(--space-6) var(--space-4);
+      color: var(--text-secondary);
+      font-size: var(--text-sm);
+      line-height: 1.6;
+      display: none;
+    }
+    .faq-item.active .faq-answer {
+      display: block;
+    }
+    .faq-item.active .faq-toggle {
+      transform: rotate(180deg);
+    }
+    .faq-toggle {
+      transition: transform var(--transition-base);
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrapper">
+  <main class="main-content">
+    <!-- Header -->
+    <section style="background:var(--bg-surface);border-bottom:1px solid var(--border-color);padding:var(--space-12) 0;text-align:center;">
+      <div class="container" style="max-width:700px">
+        <span class="badge badge-accent" style="margin-bottom:var(--space-3)">SIMPLE & TRANSPARENT</span>
+        <h1 style="font-size:var(--text-3xl);font-weight:800;letter-spacing:-0.03em;margin-bottom:var(--space-3)">
+          How ResourceX Works
+        </h1>
+        <p class="text-secondary" style="font-size:var(--text-md)">
+          Whether you want to share textbooks, borrow an Arduino board for a weekend lab, or access study notes, here is your campus guide.
+        </p>
+
+        <!-- Mode switcher pills -->
+        <div style="display:flex;gap:var(--space-2);justify-content:center;margin-top:var(--space-6);flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" id="tab-borrow" onclick="switchGuide('borrow')">Borrowing Resources</button>
+          <button class="btn btn-outline btn-sm" id="tab-share" onclick="switchGuide('share')">Sharing & Lending</button>
+          <button class="btn btn-outline btn-sm" id="tab-buy" onclick="switchGuide('buy')">Buying & Selling</button>
+          <button class="btn btn-outline btn-sm" id="tab-digital" onclick="switchGuide('digital')">Digital Resources</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dynamic Flow Content -->
+    <section class="section">
+      <div class="container" style="max-width:960px">
+        <div id="guide-content">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Campus Safe Zones Notice -->
+    <section class="section" style="background:var(--bg-muted);padding:var(--space-10) 0">
+      <div class="container" style="max-width:800px;text-align:center">
+        <div style="font-size:2rem;margin-bottom:var(--space-2)">🏛️</div>
+        <h3 style="font-size:var(--text-xl);font-weight:700;margin-bottom:var(--space-2)">Designated Campus Handover Zones</h3>
+        <p class="text-secondary text-sm" style="margin-bottom:var(--space-4)">
+          For physical item exchanges, we recommend safe, well-lit campus hubs:
+        </p>
+        <div style="display:flex;gap:var(--space-4);justify-content:center;flex-wrap:wrap;font-weight:600;font-size:var(--text-sm)">
+          <span class="tag">📍 Central Library Foyer</span>
+          <span class="tag">📍 Student Union Information Desk</span>
+          <span class="tag">📍 Department Common Labs</span>
+          <span class="tag">📍 Engineering Block Cafeteria</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Accordion -->
+    <section class="section">
+      <div class="container" style="max-width:800px">
+        <div class="section-header">
+          <h2 class="section-title">Frequently Asked Questions</h2>
+          <p class="section-subtitle">Everything you need to know about campus resource sharing on ResourceX.</p>
+        </div>
+
+        <div id="faq-list">
+          <div class="faq-item active" onclick="toggleFaq(this)">
+            <div class="faq-question">
+              <span>Who can register on ResourceX?</span>
+              <span class="faq-toggle">▼</span>
+            </div>
+            <div class="faq-answer">
+              Any active student, researcher, or faculty member can create an account directly using their personal email address.
+            </div>
+          </div>
+
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-question">
+              <span>What happens if a borrowed physical item is damaged or not returned?</span>
+              <span class="faq-toggle">▼</span>
+            </div>
+            <div class="faq-answer">
+              Every borrow request records start and return dates. If a return is overdue, the borrower receives automatic notifications and their borrowing privileges are paused. Users can also specify a refundable security deposit for high-value lab apparatus. Unresolved issues can be reported to campus moderators.
+            </div>
+          </div>
+
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-question">
+              <span>Can I sell used books or electronics?</span>
+              <span class="faq-toggle">▼</span>
+            </div>
+            <div class="faq-answer">
+              Yes! You can list any academic-related textbook, scientific calculator, development board, or drawing kit for sale with a transparent price. The transaction takes place directly and safely in-person on campus.
+            </div>
+          </div>
+
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-question">
+              <span>What types of digital resources are permitted?</span>
+              <span class="faq-toggle">▼</span>
+            </div>
+            <div class="faq-answer">
+              You may share personal lecture notes, revision cheat sheets, laboratory guides you have written, past assignment templates with permission, and open-source academic code. Copyrighted pirated textbooks or confidential exam papers are strictly forbidden and will be moderated.
+            </div>
+          </div>
+
+          <div class="faq-item" onclick="toggleFaq(this)">
+            <div class="faq-question">
+              <span>How does the Smart Matching system work?</span>
+              <span class="faq-toggle">▼</span>
+            </div>
+            <div class="faq-answer">
+              If an item you need is not currently listed, submit a requirement description (e.g., "Need Raspberry Pi 4 with camera for computer vision project"). ResourceX's matching algorithm compares keywords, department, and categories against incoming listings and notifies you when matches appear.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/demo-data.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/common.js"></script>
+<script>
+  const GUIDES = {
+    borrow: {
+      title: 'How to Borrow Academic Resources',
+      desc: 'Get temporary access to lab equipment, calculators, reference texts, and components for your semester needs.',
+      steps: [
+        { num: '1', title: 'Find & Verify', text: 'Browse catalog, check physical condition, availability calendar, and owner ratings.' },
+        { num: '2', title: 'Submit Request', text: 'Select your needed start date and expected return date, and describe your academic purpose.' },
+        { num: '3', title: 'Campus Meetup', text: 'Once the owner accepts, meet at a designated campus location (e.g., Library Foyer) to collect the item.' },
+        { num: '4', title: 'Return on Time', text: 'Hand the item back before the due date and submit a peer review to build campus trust.' }
+      ]
+    },
+    share: {
+      title: 'How to Share & Lend Resources',
+      desc: 'Help fellow classmates succeed while keeping academic gear in circulation instead of gathering dust in your dorm.',
+      steps: [
+        { num: '1', title: 'List in Seconds', text: 'Upload photo, select physical condition, category, department, and whether it is free or refundable deposit.' },
+        { num: '2', title: 'Review Requests', text: 'Receive notifications when peers request your item. View their verified campus profile and decide.' },
+        { num: '3', title: 'Hand Over', text: 'Coordinate a convenient handover spot on campus between classes.' },
+        { num: '4', title: 'Confirm Return', text: 'Inspect item condition upon return, mark reservation completed, and leave a rating for the borrower.' }
+      ]
+    },
+    buy: {
+      title: 'How to Buy & Sell Used Campus Gear',
+      desc: 'Sell your previous semester textbooks, drawing kits, and electronics to juniors at fair student prices.',
+      steps: [
+        { num: '1', title: 'Post Listing with Price', text: 'Set a fair student price, clear photos, and note the edition or model number.' },
+        { num: '2', title: 'Buyer Initiates Request', text: 'Interested campus buyers send a purchase reservation with their preferred meetup time.' },
+        { num: '3', title: 'Inspect & Complete', text: 'Meet on campus, allow the buyer to inspect the item, complete the payment, and mark item sold.' }
+      ]
+    },
+    digital: {
+      title: 'How to Share & Access Digital Academic Material',
+      desc: 'Access lecture notes, revision guides, code repositories, and cheat sheets instantly.',
+      steps: [
+        { num: '1', title: 'Search by Course', text: 'Filter by Department, Subject Code, or Semester to locate high-quality study materials.' },
+        { num: '2', title: 'Instant Download', text: 'Click Access Digital Resource to download verified PDF, DOCX, or ZIP files instantly.' },
+        { num: '3', title: 'Rate & Contribute', text: 'Leave helpful feedback on note accuracy and upload your own curated study materials.' }
+      ]
+    }
+  };
+
+  function switchGuide(type) {
+    const data = GUIDES[type];
+    ['borrow', 'share', 'buy', 'digital'].forEach(t => {
+      const btn = document.getElementById(`tab-${t}`);
+      if (t === type) {
+        btn.className = 'btn btn-primary btn-sm';
+      } else {
+        btn.className = 'btn btn-outline btn-sm';
+      }
+    });
+
+    const container = document.getElementById('guide-content');
+    container.innerHTML = `
+      <div style="text-align:center;margin-bottom:var(--space-8)">
+        <h2 style="font-size:var(--text-2xl);font-weight:700;margin-bottom:var(--space-2)">${data.title}</h2>
+        <p class="text-secondary text-sm">${data.desc}</p>
+      </div>
+      <div class="grid grid-cols-${data.steps.length > 3 ? '4' : '3'}" style="gap:var(--space-6)">
+        ${data.steps.map(s => `
+          <div class="step-card">
+            <div class="step-number">${s.num}</div>
+            <h4 style="font-size:var(--text-md);font-weight:700;margin-bottom:var(--space-2)">${s.title}</h4>
+            <p class="text-secondary text-sm" style="line-height:1.5">${s.text}</p>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function toggleFaq(el) {
+    el.classList.toggle('active');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initNavbar();
+    initFooter();
+    switchGuide('borrow');
+  });
+</script>
+</body>
+</html>
