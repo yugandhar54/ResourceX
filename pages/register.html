@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="../css/layout.css"/>
   <link rel="stylesheet" href="../css/components.css"/>
   <link rel="stylesheet" href="../css/auth.css"/>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 <div class="auth-page">
@@ -58,7 +59,7 @@
       </div>
 
       <!-- Continue with Google Button -->
-      <button type="button" class="btn btn-google" id="google-signup-btn" style="margin-bottom:var(--space-2)">
+      <button type="button" class="btn btn-google" id="google-signup-btn" style="margin-bottom:var(--space-1)">
         <svg class="google-icon" width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
           <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -67,6 +68,11 @@
         </svg>
         <span>Sign up with Google</span>
       </button>
+      <div style="text-align:center;margin-bottom:var(--space-2)">
+        <a href="#" id="google-troubleshoot-link" style="font-size:11px;color:var(--text-muted);text-decoration:underline">
+          Google Sign-In setup &amp; options
+        </a>
+      </div>
 
       <div class="auth-divider" style="margin:var(--space-4) 0"><span>or register with email</span></div>
 
@@ -96,9 +102,15 @@
 
         <div class="auth-form-row">
           <div class="form-group">
-            <label class="form-label" for="reg-roll">Student ID / Roll No <span class="required">*</span></label>
-            <input type="text" id="reg-roll" name="rollNumber" class="form-control" placeholder="e.g. 12318361" required/>
-            <div class="form-error" id="roll-error" style="display:none"></div>
+            <label class="form-label" for="reg-phone">Phone / Contact Number <span class="required">*</span></label>
+            <div class="input-group">
+              <span class="input-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              </span>
+              <input type="tel" id="reg-phone" name="phone" class="form-control" placeholder="e.g. +91 9876543210" required autocomplete="tel"/>
+            </div>
+            <div class="form-error" id="phone-error" style="display:none"></div>
+            <div class="form-hint" style="font-size:11px;color:var(--text-muted);margin-top:2px">Used by campus peers to contact you when requesting your resources.</div>
           </div>
           <div class="form-group">
             <label class="form-label" for="reg-role">I am a</label>
@@ -230,13 +242,13 @@ function clearErr(id) {
 
 async function handleRegister(e) {
   e.preventDefault();
-  const errors = ['firstname-error','lastname-error','email-error','roll-error','dept-error','password-error','confirm-error','terms-error'];
+  const errors = ['firstname-error','lastname-error','email-error','phone-error','dept-error','password-error','confirm-error','terms-error'];
   errors.forEach(clearErr);
 
   const first = document.getElementById('reg-firstname').value.trim();
   const last  = document.getElementById('reg-lastname').value.trim();
   const email = document.getElementById('reg-email').value.trim();
-  const roll  = document.getElementById('reg-roll').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
   const dept  = document.getElementById('reg-dept').value;
   const role  = document.getElementById('reg-role')?.value || 'student';
   const pwd   = document.getElementById('reg-password').value;
@@ -247,7 +259,7 @@ async function handleRegister(e) {
   if (!first) { showErr('firstname-error', 'First name is required.'); valid = false; }
   if (!last)  { showErr('lastname-error',  'Last name is required.');  valid = false; }
   if (!email || !email.includes('@')) { showErr('email-error', 'Enter a valid personal email (e.g. yugandharchandu54@gmail.com).'); valid = false; }
-  if (!roll)  { showErr('roll-error',  'Registration number / Student ID is required.'); valid = false; }
+  if (!phone || phone.length < 7) { showErr('phone-error', 'Phone number is required so peers can contact you regarding resource requests.'); valid = false; }
   if (!dept)  { showErr('dept-error',  'Please select your department.');  valid = false; }
   if (pwd.length < 8) { showErr('password-error', 'Password must be at least 8 characters.'); valid = false; }
   if (pwd !== cpwd)   { showErr('confirm-error', 'Passwords do not match.');  valid = false; }
@@ -264,7 +276,8 @@ async function handleRegister(e) {
       lastName: last,
       email,
       personalEmail: email,
-      rollNumber: roll,
+      phone: phone,
+      rollNumber: phone,
       department: dept,
       role,
       password: pwd

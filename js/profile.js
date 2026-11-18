@@ -30,8 +30,10 @@ function loadUserProfile() {
   if (document.getElementById('prof-personal-email')) {
     document.getElementById('prof-personal-email').value = user.personalEmail || '';
   }
-  if (document.getElementById('prof-id')) {
-    document.getElementById('prof-id').value = user.rollNumber || '12318361';
+  if (document.getElementById('prof-phone')) {
+    document.getElementById('prof-phone').value = user.phone || user.phoneNumber || '';
+  } else if (document.getElementById('prof-id')) {
+    document.getElementById('prof-id').value = user.phone || user.rollNumber || '';
   }
   document.getElementById('prof-dept').value = user.department || 'Computer Science & Engineering';
   document.getElementById('prof-bio').value = user.bio || 'Campus scholar interested in resource sharing and research collaboration.';
@@ -70,7 +72,7 @@ function handleProfileSave(e) {
   const name = document.getElementById('prof-name').value.trim();
   const department = document.getElementById('prof-dept').value.trim();
   const personalEmail = document.getElementById('prof-personal-email')?.value.trim() || '';
-  const rollNumber = document.getElementById('prof-id')?.value.trim() || '';
+  const phone = document.getElementById('prof-phone')?.value.trim() || document.getElementById('prof-id')?.value.trim() || '';
   const bio = document.getElementById('prof-bio').value.trim();
 
   Loading.show(btn, 'Saving...');
@@ -80,7 +82,8 @@ function handleProfileSave(e) {
     user.name = name;
     user.department = department;
     user.personalEmail = personalEmail;
-    user.rollNumber = rollNumber;
+    user.phone = phone;
+    user.rollNumber = phone;
     user.bio = bio;
     user.initials = name.split(' ').map(n=>n[0]).join('').slice(0,2);
 

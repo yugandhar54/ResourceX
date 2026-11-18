@@ -89,7 +89,7 @@ async function list(params = {}) {
  */
 async function get(id) {
   const resource = await Resource.findById(id)
-    .populate('owner', 'firstName lastName role department rating reviewCount bio');
+    .populate('owner', 'firstName lastName email phone rollNumber role department rating reviewCount bio');
 
   if (!resource) {
     const err = new Error('Resource not found');
@@ -126,16 +126,33 @@ async function getForOwner(id, userId) {
 }
 
 /**
- * Create a new resource listing (always starts as 'pending').
+ * Create a new resource listing (auto-approved by default for peer visibility).
  */
 async function create(data, ownerId) {
+  // Normalize condition
+  let cond = (data.condition || 'Good').trim();
+  const cLower = cond.toLowerCase();
+  if (cLower === 'like-new' || cLower === 'like new' || cLower === 'excellent') cond = 'Excellent';
+  else if (cLower === 'good') cond = 'Good';
+  else if (cLower === 'fair' || cLower === 'usable' || cLower === 'poor') cond = 'Fair';
+  else if (cLower === 'n/a') cond = 'N/A';
+
+  // Availability & status normalization
+  let availability = data.availability || 'available';
+  if (['available', 'borrowed', 'reserved', 'sold'].includes(data.status)) {
+    availability = data.status;
+  }
+  const status = (data.status === 'approved') ? 'approved' : 'pending';
+
   const resource = await Resource.create({
     ...data,
-    owner:  ownerId,
-    status: 'pending',
+    condition: cond,
+    availability,
+    status,
+    owner: ownerId,
   });
 
-  await resource.populate('owner', 'firstName lastName role department rating');
+  await resource.populate('owner', 'firstName lastName email rollNumber department role avatar rating');
   return formatResource(resource);
 }
 
@@ -209,12 +226,12 @@ async function myResources(userId) {
 }
 
 /**
- * Admin: get all resources including pending/rejected.
+ * Admin: get all resources including pending/rejected with submitter info.
  */
 async function adminList(filter = {}) {
   const resources = await Resource.find(filter)
     .sort({ createdAt: -1 })
-    .populate('owner', 'firstName lastName email role department');
+    .populate('owner', 'firstName lastName email phone rollNumber department role avatar rating');
 
   return resources.map(formatResource);
 }
@@ -265,6 +282,13 @@ function formatResource(r) {
   const obj = r.toObject ? r.toObject({ virtuals: true }) : r;
   const owner = obj.owner || {};
 
+  const ownerName = owner.firstName ? `${owner.firstName} ${owner.lastName}`.trim() : (owner.name || 'Campus User');
+  const ownerEmail = owner.email || '';
+  const ownerDept = owner.department || obj.department || '';
+  const ownerRoll = owner.rollNumber || '';
+  const ownerPhone = owner.phone || owner.phoneNumber || '';
+  const ownerAvatar = owner.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(ownerName)}&background=2563eb&color=fff`;
+
   return {
     id:            obj._id,
     title:         obj.title,
@@ -278,8 +302,8 @@ function formatResource(r) {
     exchangeMode:  obj.exchangeMode,
     price:         obj.price,
     deposit:       obj.deposit,
-    availability:  obj.availability,
-    status:        obj.status,
+    availability:  obj.availability || 'available',
+    status:        obj.status || 'approved',
     location:      obj.location,
     images:        obj.images || [],
     thumbnail:     (obj.images && obj.images[0]) || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80',
@@ -287,19 +311,27 @@ function formatResource(r) {
     fileType:      obj.fileType,
     fileSize:      obj.fileSize,
     ownerId:       owner._id || owner.id,
-    ownerName:     owner.firstName ? `${owner.firstName} ${owner.lastName}` : 'Campus User',
-    ownerDept:     owner.department || '',
-    owner:         owner._id ? {
-      id:         owner._id,
-      name:       `${owner.firstName} ${owner.lastName}`,
-      role:       owner.role,
-      department: owner.department,
-      rating:     owner.rating,
-      bio:        owner.bio,
+    ownerName,
+    ownerEmail,
+    ownerPhone,
+    ownerDept,
+    ownerRoll,
+    ownerAvatar,
+    owner:         owner._id || owner.id ? {
+      id:         owner._id || owner.id,
+      name:       ownerName,
+      email:      ownerEmail,
+      phone:      ownerPhone,
+      role:       owner.role || 'student',
+      department: ownerDept,
+      rollNumber: ownerRoll,
+      avatar:     ownerAvatar,
+      rating:     owner.rating || 5.0,
+      bio:        owner.bio || '',
     } : undefined,
-    rating:        obj.rating,
-    reviewCount:   obj.reviewCount,
-    views:         obj.views,
+    rating:        obj.rating || 0,
+    reviewCount:   obj.reviewCount || 0,
+    views:         obj.views || 0,
     createdAt:     obj.createdAt,
     updatedAt:     obj.updatedAt,
     moderationNote: obj.moderationNote,

@@ -27,6 +27,24 @@ async function loadResourceDetails(id) {
     currentResource = await API.resources.get(id);
     currentReviews = await API.resources.getReviews(id);
 
+    // If resource is pending, only the owner or an admin may view it
+    const currentUser = (typeof Auth !== 'undefined' && Auth.getUser()) || null;
+    const isOwner = currentUser && (
+      String(currentUser.id || currentUser._id) === String(currentResource.ownerId) ||
+      (currentResource.owner && (String(currentResource.owner.id || currentResource.owner._id) === String(currentUser.id || currentUser._id) || currentResource.owner.email === currentUser.email))
+    );
+    const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.isAdmin);
+
+    if (currentResource.status === 'pending' && !isOwner && !isAdmin) {
+      loadingEl.classList.add('hidden');
+      errorEl.classList.remove('hidden');
+      const h2 = errorEl.querySelector('h2');
+      if (h2) h2.textContent = 'Resource Awaiting Admin Approval';
+      const p = errorEl.querySelector('p');
+      if (p) p.textContent = 'This resource listing was recently submitted and is currently pending review by administrators. It will become visible to all users once approved.';
+      return;
+    }
+
     renderDetails(currentResource);
     renderReviews(currentReviews);
     loadRelatedResources(currentResource);
@@ -166,6 +184,19 @@ function renderDetails(r) {
   document.getElementById('owner-name').textContent = r.owner?.name || 'Campus Student';
   document.getElementById('owner-role-dept').textContent = `${r.owner?.role === 'faculty' ? 'Faculty Member' : 'Student'} • ${r.owner?.department || r.department || 'Campus'}`;
   document.getElementById('owner-rating').textContent = `★ ${(r.owner?.rating || 4.8).toFixed(1)} Contributor rating`;
+
+  // Owner contact phone
+  const ownerPhone = r.ownerPhone || r.owner?.phone || '';
+  const phoneBox = document.getElementById('owner-phone-box');
+  const phoneNum = document.getElementById('owner-phone-num');
+  if (phoneBox && phoneNum) {
+    if (ownerPhone) {
+      phoneNum.textContent = ownerPhone;
+      phoneBox.style.display = 'block';
+    } else {
+      phoneBox.style.display = 'none';
+    }
+  }
 
   // Wishlist state
   updateWishlistButton(r.id);
@@ -338,6 +369,25 @@ function openBuyModal() {
 function openContactOwnerModal() {
   const modal = document.getElementById('modal-contact');
   document.getElementById('contact-owner-display').value = `${currentResource.owner?.name || 'Owner'} (${currentResource.title})`;
+
+  const phone = currentResource.ownerPhone || currentResource.owner?.phone || '';
+  const phoneGroup = document.getElementById('contact-phone-group');
+  const phoneDisplay = document.getElementById('contact-phone-display');
+  const whatsappBtn = document.getElementById('contact-whatsapp-btn');
+
+  if (phoneGroup && phoneDisplay) {
+    if (phone) {
+      phoneDisplay.value = phone;
+      phoneGroup.style.display = 'block';
+      if (whatsappBtn) {
+        const cleanPhone = phone.replace(/[^\d+]/g, '');
+        whatsappBtn.href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent('Hi ' + (currentResource.owner?.name || '') + ', I found your resource "' + currentResource.title + '" on ResourceX and would like to request it.')}`;
+      }
+    } else {
+      phoneGroup.style.display = 'none';
+    }
+  }
+
   modal.classList.add('active');
 }
 
@@ -378,7 +428,9 @@ async function handleReserveSubmit(e) {
     closeModal('modal-reserve');
     const user = Auth.getUser();
     const mail = user?.personalEmail || user?.email || 'your email';
-    Toast.show(`Reservation request submitted! The owner was notified, and approval updates will be delivered to your personal email (${mail}).`, 'success');
+    const phone = currentResource.ownerPhone || currentResource.owner?.phone || '';
+    const phoneTip = phone ? ` You can also reach the contributor at 📞 ${phone} to coordinate meetup.` : '';
+    Toast.show(`Reservation request submitted! The owner was notified.${phoneTip}`, 'success');
   } catch (err) {
     Toast.show(err.message || 'Failed to submit reservation', 'danger');
   } finally {
@@ -393,7 +445,9 @@ async function confirmPurchase() {
     return;
   }
   closeModal('modal-buy');
-  Toast.show('Purchase request confirmed! The owner has been notified to meet at ' + pickupTime, 'success');
+  const phone = currentResource.ownerPhone || currentResource.owner?.phone || '';
+  const phoneTip = phone ? ` Contributor contact: 📞 ${phone}` : '';
+  Toast.show('Purchase request confirmed! The owner has been notified to meet at ' + pickupTime + '.' + phoneTip, 'success');
 }
 
 function handleContactSubmit(e) {
@@ -434,6 +488,33 @@ function handleReviewSubmit(e) {
 
 function handleReportSubmit(e) {
   e.preventDefault();
+  const reasonSelect = document.getElementById('report-reason');
+  const detailsInput = document.getElementById('report-details');
+  const reason = (reasonSelect && reasonSelect.value) ? reasonSelect.value : 'Inappropriate Content / Policy Violation';
+  const details = (detailsInput && detailsInput.value) ? detailsInput.value.trim() : '';
+
+  const activeRes = currentResourceData || {};
+  const currentUser = (typeof Auth !== 'undefined' && Auth.getUser && Auth.getUser()) || null;
+
+  const newReport = {
+    id: 'rep_' + Date.now(),
+    resourceId: activeRes.id || activeRes._id || (new URLSearchParams(window.location.search).get('id') || 'unknown'),
+    resourceTitle: activeRes.title || 'Reported Resource Listing',
+    reason: reason,
+    details: details || 'No additional details provided by reporter.',
+    reporter: currentUser ? (currentUser.name || currentUser.email) : 'Campus Student',
+    createdAt: new Date().toISOString(),
+    status: 'pending'
+  };
+
+  try {
+    const existingReports = JSON.parse(localStorage.getItem('rx_reports') || '[]');
+    existingReports.unshift(newReport);
+    localStorage.setItem('rx_reports', JSON.stringify(existingReports));
+  } catch (err) {
+    console.warn('Could not persist report to local storage:', err);
+  }
+
   closeModal('modal-report');
   Toast.show('Listing report submitted. Our campus moderators will review it promptly.', 'info');
 }

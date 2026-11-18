@@ -223,21 +223,33 @@ async function handleListingSubmit(e) {
   const depositVal = parseFloat(document.getElementById('res-deposit')?.value);
   const deposit = !isNaN(depositVal) ? depositVal : 0;
 
-  const condition = document.getElementById('res-condition')?.value || 'good';
+  const rawCondition = document.getElementById('res-condition')?.value || 'good';
+  let condition = 'Good';
+  if (rawCondition === 'like-new' || rawCondition === 'Like New' || rawCondition === 'Excellent') condition = 'Excellent';
+  else if (rawCondition === 'good' || rawCondition === 'Good') condition = 'Good';
+  else if (rawCondition === 'fair' || rawCondition === 'Fair') condition = 'Fair';
+  else if (rawCondition === 'usable' || rawCondition === 'Poor') condition = 'Fair';
+
   const location = document.getElementById('res-location')?.value || 'Central Library';
-  const status = document.getElementById('res-status')?.value || 'available';
+  const availability = document.getElementById('res-status')?.value || 'available';
 
   if (!title || !category || !description) {
-    Toast.show('Please fill in all required fields.', 'warning');
+    Toast.show('Please fill in all required fields (Title, Category, and Description).', 'warning');
     return;
   }
 
-  const user = Auth.getUser() || DEMO_DATA.currentUser;
+  const user = Auth.getUser() || DEMO_DATA.currentUser || { name: 'Campus Student', email: 'student@campus.edu' };
+  const ownerName = user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Student Contributor';
+  const ownerEmail = user.email || user.personalEmail || '';
+  const ownerPhone = user.phone || user.phoneNumber || '';
+  const ownerDept = user.department || department || 'General';
+  const ownerRoll = user.rollNumber || ownerPhone || '';
+  const ownerAvatar = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(ownerName)}&background=2563eb&color=fff`;
 
   const listingPayload = {
     title,
     category,
-    department,
+    department: ownerDept,
     description,
     type,
     exchangeMode,
@@ -246,14 +258,26 @@ async function handleListingSubmit(e) {
     condition: type === 'physical' ? condition : 'N/A',
     location: type === 'physical' ? location : 'Online Download',
     tags,
-    status,
+    availability,
+    status: isEditMode ? 'approved' : 'pending',
     images: uploadedImages.length ? uploadedImages : ['https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80'],
     thumbnail: uploadedImages[0] || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80',
+    ownerId: user.id || user._id,
+    ownerName,
+    ownerEmail,
+    ownerPhone,
+    ownerDept,
+    ownerRoll,
+    ownerAvatar,
     owner: {
-      id: user.id || 'u001',
-      name: user.name || 'Student Contributor',
+      id: user.id || user._id,
+      name: ownerName,
+      email: ownerEmail,
+      phone: ownerPhone,
       role: user.role || 'student',
-      department: user.department || department,
+      department: ownerDept,
+      rollNumber: ownerRoll,
+      avatar: ownerAvatar,
       rating: 5.0
     }
   };
@@ -269,11 +293,16 @@ async function handleListingSubmit(e) {
     } else {
       const created = await API.resources.create(listingPayload);
       formIsDirty = false;
-      Toast.show('Resource published to campus catalog!', 'success');
-      setTimeout(() => { window.location.href = `resource-details.html?id=${created.id || 'r001'}`; }, 1200);
+      Toast.show('Resource submitted for admin approval! It will be visible to everyone once approved.', 'success');
+      setTimeout(() => { window.location.href = 'my-resources.html'; }, 1200);
     }
   } catch (err) {
-    Toast.show(err.message || 'Failed to save resource listing.', 'danger');
+    console.error('Failed to save listing:', err);
+    let msg = err.message || 'Failed to save resource listing.';
+    if (err.errors && Array.isArray(err.errors) && err.errors.length) {
+      msg = err.errors.map(e => e.message || e.msg || (e.field + ' is invalid')).join(', ');
+    }
+    Toast.show(msg, 'danger');
   } finally {
     Loading.hide(btn);
   }

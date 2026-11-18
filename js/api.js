@@ -16,7 +16,7 @@ const API = (() => {
   async function request(method, endpoint, body = null) {
     const headers = { 'Content-Type': 'application/json' };
     // Attach JWT if stored
-    const token = sessionStorage.getItem('rx_token');
+    const token = sessionStorage.getItem('rx_token') || localStorage.getItem('rx_token');
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
     const opts = { method, headers };
@@ -27,6 +27,7 @@ const API = (() => {
       const err = await res.json().catch(() => ({ message: res.statusText }));
       const error = new Error(err.message || `HTTP ${res.status}`);
       error.status = res.status;
+      error.errors = err.errors;
       throw error;
     }
     return res.json();
@@ -104,69 +105,200 @@ const API = (() => {
     /* ── Resources ── */
     resources: {
       async list(params = {}) {
-        if (CONFIG.DEMO_MODE) {
-          await demoDelay();
-          return filterResources(DEMO_DATA.resources, params);
-        }
-        const cleaned = {};
-        for (const [k, v] of Object.entries(params)) {
-          if (v !== undefined && v !== null && v !== '' && v !== 'undefined') {
-            cleaned[k] = v;
+        let result = null;
+        if (!CONFIG.DEMO_MODE) {
+          try {
+            const cleaned = {};
+            for (const [k, v] of Object.entries(params)) {
+              if (v !== undefined && v !== null && v !== '' && v !== 'undefined') {
+                cleaned[k] = v;
+              }
+            }
+            const qs = new URLSearchParams(cleaned).toString();
+            result = await http.get(`/resources${qs ? '?' + qs : ''}`);
+          } catch (err) {
+            console.warn('[ResourceX] Backend offline, loading local resources:', err.message);
           }
         }
-        const qs = new URLSearchParams(cleaned).toString();
-        return http.get(`/resources${qs ? '?' + qs : ''}`);
+
+        // Public catalog strictly displays only approved resources (pending items require admin approval)
+        const localRes = JSON.parse(localStorage.getItem('rx_local_resources') || '[]');
+        const approvedLocals = localRes.filter(r => r.status === 'approved');
+
+        if (result && Array.isArray(result.items)) {
+          const approvedBackends = result.items.filter(r => r.status === 'approved');
+          const existingIds = new Set(approvedBackends.map(r => String(r.id || r._id)));
+          const uniqueLocals = approvedLocals.filter(r => !existingIds.has(String(r.id || r._id)));
+          return {
+            ...result,
+            items: [...uniqueLocals, ...approvedBackends],
+            total: (result.total || 0) + uniqueLocals.length,
+          };
+        }
+
+        await demoDelay();
+        const demoApproved = DEMO_DATA.resources.filter(r => r.status === 'approved');
+        const allRes = [...approvedLocals, ...demoApproved];
+        return filterResources(allRes, params);
       },
 
       async get(id) {
-        if (CONFIG.DEMO_MODE) {
-          await demoDelay();
-          const r = DEMO_DATA.resources.find(r => r.id === id);
-          if (!r) throw new Error('Resource not found');
-          return r;
+        if (!CONFIG.DEMO_MODE) {
+          try {
+            return await http.get(`/resources/${id}`);
+          } catch (err) {
+            console.warn('[ResourceX] Backend offline, checking local resources:', err.message);
+          }
         }
-        return http.get(`/resources/${id}`);
+        await demoDelay();
+        const localRes = JSON.parse(localStorage.getItem('rx_local_resources') || '[]');
+        const all = [...localRes, ...DEMO_DATA.resources];
+        const r = all.find(item => String(item.id || item._id) === String(id));
+        if (!r) throw new Error('Resource not found');
+        return r;
       },
 
       async create(data) {
-        if (CONFIG.DEMO_MODE) {
-          await demoDelay();
-          return { ...data, id: 'r_new_' + Date.now(), status: 'pending', createdAt: new Date().toISOString() };
+        let created = null;
+        if (!CONFIG.DEMO_MODE) {
+          try {
+            created = await http.post('/resources', data);
+          } catch (err) {
+            // Re-throw true 400 validation errors so the UI shows specific field messages
+            if (err.status === 400 || err.status === 401 || err.status === 403) {
+              throw err;
+            }
+            console.warn('[ResourceX] Backend offline, saving resource locally:', err.message);
+          }
         }
-        return http.post('/resources', data);
+
+        if (!created) {
+          const user = (typeof Auth !== 'undefined' && Auth.getUser()) || DEMO_DATA.currentUser || { name: 'Campus Student', email: 'student@campus.edu' };
+          const ownerName = user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Student Contributor';
+          const ownerEmail = user.email || user.personalEmail || '';
+          const ownerPhone = user.phone || user.phoneNumber || '';
+          const ownerDept = user.department || data.department || 'General';
+          const ownerRoll = user.rollNumber || ownerPhone || '';
+          const ownerAvatar = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(ownerName)}&background=2563eb&color=fff`;
+
+          created = {
+            ...data,
+            id: 'r_local_' + Date.now(),
+            _id: 'r_local_' + Date.now(),
+            ownerId: user.id || user._id || 'u001',
+            ownerName,
+            ownerEmail,
+            ownerPhone,
+            ownerDept,
+            ownerRoll,
+            ownerAvatar,
+            owner: {
+              id: user.id || user._id || 'u001',
+              name: ownerName,
+              email: ownerEmail,
+              phone: ownerPhone,
+              role: user.role || 'student',
+              department: ownerDept,
+              rollNumber: ownerRoll,
+              avatar: ownerAvatar,
+              rating: 5.0,
+            },
+            status: 'pending', // Strictly pending until admin accepts
+            availability: data.availability || 'available',
+            views: 0,
+            rating: 5.0,
+            reviewCount: 0,
+            createdAt: new Date().toISOString(),
+          };
+        }
+
+        // Always save to localStorage and unshift into DEMO_DATA so it appears immediately
+        try {
+          const localList = JSON.parse(localStorage.getItem('rx_local_resources') || '[]');
+          localList.unshift(created);
+          localStorage.setItem('rx_local_resources', JSON.stringify(localList));
+          if (Array.isArray(DEMO_DATA.resources)) {
+            DEMO_DATA.resources.unshift(created);
+          }
+        } catch (_) {}
+
+        return created;
       },
 
       async update(id, data) {
-        if (CONFIG.DEMO_MODE) {
-          await demoDelay();
-          return { ...data, id, updatedAt: new Date().toISOString() };
+        if (!CONFIG.DEMO_MODE) {
+          try {
+            return await http.put(`/resources/${id}`, data);
+          } catch (err) {
+            console.warn('[ResourceX] Backend offline, updating locally:', err.message);
+          }
         }
-        return http.put(`/resources/${id}`, data);
+        await demoDelay();
+        try {
+          const localList = JSON.parse(localStorage.getItem('rx_local_resources') || '[]');
+          const idx = localList.findIndex(r => String(r.id || r._id) === String(id));
+          if (idx !== -1) {
+            localList[idx] = { ...localList[idx], ...data, updatedAt: new Date().toISOString() };
+            localStorage.setItem('rx_local_resources', JSON.stringify(localList));
+          }
+        } catch (_) {}
+        return { ...data, id, updatedAt: new Date().toISOString() };
       },
 
       async delete(id) {
-        if (CONFIG.DEMO_MODE) {
-          await demoDelay();
-          return { success: true };
+        if (!CONFIG.DEMO_MODE) {
+          try {
+            return await http.delete(`/resources/${id}`);
+          } catch (err) {
+            console.warn('[ResourceX] Backend offline, deleting locally:', err.message);
+          }
         }
-        return http.delete(`/resources/${id}`);
+        await demoDelay();
+        try {
+          let localList = JSON.parse(localStorage.getItem('rx_local_resources') || '[]');
+          localList = localList.filter(r => String(r.id || r._id) !== String(id));
+          localStorage.setItem('rx_local_resources', JSON.stringify(localList));
+          if (Array.isArray(DEMO_DATA.resources)) {
+            DEMO_DATA.resources = DEMO_DATA.resources.filter(r => String(r.id || r._id) !== String(id));
+          }
+        } catch (_) {}
+        return { success: true };
       },
 
       async getReviews(id) {
-        if (CONFIG.DEMO_MODE) {
-          await demoDelay();
-          return DEMO_DATA.reviews.filter(rv => rv.resourceId === id);
+        if (!CONFIG.DEMO_MODE) {
+          try {
+            return await http.get(`/resources/${id}/reviews`);
+          } catch (_) {}
         }
-        return http.get(`/resources/${id}/reviews`);
+        await demoDelay();
+        return DEMO_DATA.reviews.filter(rv => rv.resourceId === id);
       },
 
       async myResources() {
-        if (CONFIG.DEMO_MODE) {
-          await demoDelay();
-          const uid = DEMO_DATA.currentUser.id;
-          return DEMO_DATA.resources.filter(r => r.ownerId === uid);
+        const user = (typeof Auth !== 'undefined' && Auth.getUser()) || DEMO_DATA.currentUser;
+        const uid = user ? String(user.id || user._id) : 'u001';
+        let list = null;
+
+        if (!CONFIG.DEMO_MODE) {
+          try {
+            list = await http.get('/resources/mine');
+          } catch (err) {
+            console.warn('[ResourceX] Backend offline, loading my resources locally:', err.message);
+          }
         }
-        return http.get('/resources/mine');
+
+        const localRes = JSON.parse(localStorage.getItem('rx_local_resources') || '[]');
+        const myLocals = localRes.filter(r => String(r.ownerId) === uid || (r.owner && String(r.owner.id || r.owner._id) === uid));
+
+        if (Array.isArray(list)) {
+          const existingIds = new Set(list.map(r => String(r.id || r._id)));
+          return [...myLocals.filter(r => !existingIds.has(String(r.id || r._id))), ...list];
+        }
+
+        await demoDelay();
+        const demoMine = DEMO_DATA.resources.filter(r => String(r.ownerId) === uid || (r.owner && String(r.owner.id) === uid));
+        return [...myLocals, ...demoMine];
       },
     },
 
@@ -205,17 +337,50 @@ const API = (() => {
 
         const emailLower = credentials.email.toLowerCase().trim();
 
-        // 1. Check user accounts registered in localStorage
+        // 1. Check built-in Campus Administrator credentials
+        if (
+          emailLower === 'admin@campus.edu' ||
+          emailLower === 'admin@resourcex.edu' ||
+          emailLower === 'administrator@campus.edu'
+        ) {
+          if (credentials.password && credentials.password !== 'AdminPass@123' && credentials.password !== 'admin123') {
+            throw new Error('Invalid administrator password. Default password is AdminPass@123');
+          }
+          const adminUser = {
+            id: 'u_admin_001',
+            _id: 'u_admin_001',
+            name: 'Campus Administrator',
+            firstName: 'Campus',
+            lastName: 'Administrator',
+            email: emailLower,
+            personalEmail: emailLower,
+            rollNumber: 'ADM-001',
+            department: 'Campus Administration',
+            role: 'admin',
+            isAdmin: true,
+            initials: 'AD',
+            status: 'active',
+            rating: 5.0,
+            reviewCount: 0,
+            listedCount: 0,
+            interactions: 99,
+            createdAt: '2026-01-01T00:00:00.000Z'
+          };
+          return { user: adminUser, token: 'local_admin_jwt_' + Date.now() };
+        }
+
+        // 2. Check user accounts registered in localStorage
         const localUsers = this._getLocalUsers();
         const found = localUsers.find(u => u.email && u.email.toLowerCase() === emailLower);
         if (found) {
           if (found.password && credentials.password && found.password !== credentials.password) {
             throw new Error('Invalid email or password.');
           }
+          if (found.role === 'admin') found.isAdmin = true;
           return { user: found, token: 'local_token_' + Date.now() };
         }
 
-        // 2. No matching user account
+        // 3. No matching user account
         throw new Error('Invalid email or password. Please check your credentials or create an account.');
       },
 
@@ -247,7 +412,8 @@ const API = (() => {
           lastName: data.lastName || '',
           email: data.email,
           personalEmail: data.email,
-          rollNumber: data.rollNumber || '',
+          phone: data.phone || data.phoneNumber || '',
+          rollNumber: data.phone || data.rollNumber || '',
           department: data.department || '',
           role: data.role || 'student',
           password: data.password,
@@ -344,10 +510,11 @@ const API = (() => {
       async list(params = {}) {
         if (CONFIG.DEMO_MODE) {
           await demoDelay();
-          const uid  = DEMO_DATA.currentUser.id;
-          let list   = DEMO_DATA.reservations.filter(r =>
-            r.requesterId === uid || r.ownerId === uid
-          );
+          const user = (typeof Auth !== 'undefined' && Auth.getUser && Auth.getUser()) || DEMO_DATA.currentUser || null;
+          const uid  = user ? (user.id || user._id) : null;
+          const localRes = JSON.parse(localStorage.getItem('rx_reservations') || '[]');
+          const allRes = [...(DEMO_DATA.reservations || []), ...localRes];
+          let list = uid ? allRes.filter(r => r.requesterId === uid || r.ownerId === uid) : allRes;
           if (params.status && params.status !== 'all') {
             list = list.filter(r => r.status === params.status);
           }
@@ -359,7 +526,13 @@ const API = (() => {
       async create(data) {
         if (CONFIG.DEMO_MODE) {
           await demoDelay();
-          return { ...data, id: 'res_' + Date.now(), status: 'pending', createdAt: new Date().toISOString() };
+          const newRes = { ...data, id: 'res_' + Date.now(), status: 'pending', createdAt: new Date().toISOString() };
+          try {
+            const list = JSON.parse(localStorage.getItem('rx_reservations') || '[]');
+            list.unshift(newRes);
+            localStorage.setItem('rx_reservations', JSON.stringify(list));
+          } catch (_) {}
+          return newRes;
         }
         return http.post('/reservations', data);
       },
@@ -367,8 +540,14 @@ const API = (() => {
       async updateStatus(id, status) {
         if (CONFIG.DEMO_MODE) {
           await demoDelay();
-          const r = DEMO_DATA.reservations.find(r => r.id === id);
-          if (r) r.status = status;
+          try {
+            const list = JSON.parse(localStorage.getItem('rx_reservations') || '[]');
+            const r = list.find(item => item.id === id);
+            if (r) {
+              r.status = status;
+              localStorage.setItem('rx_reservations', JSON.stringify(list));
+            }
+          } catch (_) {}
           return { id, status };
         }
         return http.patch(`/reservations/${id}`, { status });
@@ -380,7 +559,8 @@ const API = (() => {
       async list() {
         if (CONFIG.DEMO_MODE) {
           await demoDelay();
-          return DEMO_DATA.transactions;
+          const localTx = JSON.parse(localStorage.getItem('rx_transactions') || '[]');
+          return [...(DEMO_DATA.transactions || []), ...localTx];
         }
         return http.get('/transactions');
       },
@@ -388,7 +568,9 @@ const API = (() => {
       async get(id) {
         if (CONFIG.DEMO_MODE) {
           await demoDelay();
-          return DEMO_DATA.transactions.find(t => t.id === id);
+          const localTx = JSON.parse(localStorage.getItem('rx_transactions') || '[]');
+          const allTx = [...(DEMO_DATA.transactions || []), ...localTx];
+          return allTx.find(t => t.id === id);
         }
         return http.get(`/transactions/${id}`);
       },
@@ -399,7 +581,8 @@ const API = (() => {
       async list() {
         if (CONFIG.DEMO_MODE) {
           await demoDelay();
-          return DEMO_DATA.notifications;
+          const localNotifs = JSON.parse(localStorage.getItem('rx_notifications') || '[]');
+          return [...(DEMO_DATA.notifications || []), ...localNotifs];
         }
         return http.get('/notifications');
       },
@@ -407,8 +590,14 @@ const API = (() => {
       async markRead(id) {
         if (CONFIG.DEMO_MODE) {
           await demoDelay();
-          const n = DEMO_DATA.notifications.find(n => n.id === id);
-          if (n) n.read = true;
+          try {
+            const list = JSON.parse(localStorage.getItem('rx_notifications') || '[]');
+            const n = list.find(item => item.id === id);
+            if (n) {
+              n.read = true;
+              localStorage.setItem('rx_notifications', JSON.stringify(list));
+            }
+          } catch (_) {}
           return { success: true };
         }
         return http.patch(`/notifications/${id}`, { read: true });
@@ -417,7 +606,11 @@ const API = (() => {
       async markAllRead() {
         if (CONFIG.DEMO_MODE) {
           await demoDelay();
-          DEMO_DATA.notifications.forEach(n => n.read = true);
+          try {
+            const list = JSON.parse(localStorage.getItem('rx_notifications') || '[]');
+            list.forEach(n => n.read = true);
+            localStorage.setItem('rx_notifications', JSON.stringify(list));
+          } catch (_) {}
           return { success: true };
         }
         return http.post('/notifications/mark-all-read');
@@ -429,8 +622,11 @@ const API = (() => {
       async list() {
         if (CONFIG.DEMO_MODE) {
           await demoDelay();
-          const uid = DEMO_DATA.currentUser.id;
-          return DEMO_DATA.requirements.filter(r => r.userId === uid);
+          const user = (typeof Auth !== 'undefined' && Auth.getUser && Auth.getUser()) || DEMO_DATA.currentUser || null;
+          const uid = user ? (user.id || user._id) : null;
+          const localReqs = JSON.parse(localStorage.getItem('rx_requirements') || '[]');
+          const allReqs = [...(DEMO_DATA.requirements || []), ...localReqs];
+          return uid ? allReqs.filter(r => r.userId === uid) : allReqs;
         }
         return http.get('/requirements');
       },
@@ -438,8 +634,14 @@ const API = (() => {
       async create(data) {
         if (CONFIG.DEMO_MODE) {
           await demoDelay();
-          const newReq = { ...data, id: 'req_' + Date.now(), userId: DEMO_DATA.currentUser.id, createdAt: new Date().toISOString(), status: 'open' };
-          DEMO_DATA.requirements.push(newReq);
+          const user = (typeof Auth !== 'undefined' && Auth.getUser && Auth.getUser()) || DEMO_DATA.currentUser || null;
+          const uid = user ? (user.id || user._id) : 'u_guest';
+          const newReq = { ...data, id: 'req_' + Date.now(), userId: uid, createdAt: new Date().toISOString(), status: 'open' };
+          try {
+            const list = JSON.parse(localStorage.getItem('rx_requirements') || '[]');
+            list.unshift(newReq);
+            localStorage.setItem('rx_requirements', JSON.stringify(list));
+          } catch (_) {}
           return newReq;
         }
         return http.post('/requirements', data);
@@ -509,6 +711,47 @@ const API = (() => {
           return DEMO_DATA.analytics;
         }
         return http.get('/admin/analytics');
+      },
+    },
+
+    /* ── Admin Management ── */
+    admin: {
+      async resources(status = null) {
+        if (!CONFIG.DEMO_MODE) {
+          try {
+            const qs = status ? `?status=${encodeURIComponent(status)}` : '';
+            return await http.get(`/admin/resources${qs}`);
+          } catch (err) {
+            console.warn('[ResourceX] Backend offline, getting admin resources locally:', err.message);
+          }
+        }
+        await demoDelay();
+        const localRes = JSON.parse(localStorage.getItem('rx_local_resources') || '[]');
+        const all = [...localRes, ...DEMO_DATA.resources];
+        if (status) return all.filter(r => r.status === status);
+        return all;
+      },
+
+      async moderate(id, action, note = '') {
+        if (!CONFIG.DEMO_MODE) {
+          try {
+            return await http.patch(`/admin/resources/${id}/moderate`, { action, note });
+          } catch (err) {
+            console.warn('[ResourceX] Backend offline, moderating locally:', err.message);
+          }
+        }
+        await demoDelay();
+        try {
+          const localList = JSON.parse(localStorage.getItem('rx_local_resources') || '[]');
+          const item = localList.find(r => String(r.id || r._id) === String(id));
+          if (item) {
+            item.status = action;
+            localStorage.setItem('rx_local_resources', JSON.stringify(localList));
+          }
+        } catch (_) {}
+        const demoItem = DEMO_DATA.resources.find(r => String(r.id || r._id) === String(id));
+        if (demoItem) demoItem.status = action;
+        return { id, status: action, note };
       },
     },
   };

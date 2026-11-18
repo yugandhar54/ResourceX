@@ -19,7 +19,8 @@ const CONFIG = {
    * Google OAuth 2.0 Client ID for Google Identity Services (GIS).
    * If left empty, an interactive Google account selector fallback is used for testing/demo.
    */
-  GOOGLE_CLIENT_ID: '',
+  GOOGLE_CLIENT_ID: '158657724214-i9d0qhle72cce2bui2gtsin1tc13iif5.apps.googleusercontent.com',
+  GOOGLE_PROJECT_ID: 'resourcex-515016',
 
   /**
    * DEMO_MODE = true  → use local sample data (no backend required)

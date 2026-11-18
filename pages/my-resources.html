@@ -33,7 +33,8 @@
       <div class="my-resources-toolbar" style="margin-bottom:var(--space-6);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--space-4)">
         <div class="tabs" style="border:none;margin:0">
           <button class="tab-btn active" id="tab-all" onclick="filterMyResources('all')">All (<span id="count-all">0</span>)</button>
-          <button class="tab-btn" id="tab-available" onclick="filterMyResources('available')">Available (<span id="count-available">0</span>)</button>
+          <button class="tab-btn" id="tab-pending" onclick="filterMyResources('pending')">⏳ Pending Approval (<span id="count-pending">0</span>)</button>
+          <button class="tab-btn" id="tab-available" onclick="filterMyResources('available')">Live &amp; Available (<span id="count-available">0</span>)</button>
           <button class="tab-btn" id="tab-borrowed" onclick="filterMyResources('borrowed')">Borrowed (<span id="count-borrowed">0</span>)</button>
           <button class="tab-btn" id="tab-sold" onclick="filterMyResources('sold')">Sold (<span id="count-sold">0</span>)</button>
         </div>
@@ -88,11 +89,36 @@
 
     try {
       loading.classList.remove('hidden');
-      const res = await API.resources.list({ pageSize: 50 });
-      const items = res.items || DEMO_DATA.resources;
 
-      // Assign a subset to current user in demo mode
-      allMyResources = items.filter(r => r.owner?.id === user.id || r.owner?.name === user.name || ['r001', 'r003', 'r005', 'r006'].includes(r.id));
+      // Load local created resources
+      const localRes = JSON.parse(localStorage.getItem('rx_local_resources') || '[]');
+      let serverRes = [];
+      try {
+        const res = await API.resources.list({ pageSize: 50 });
+        serverRes = res.items || [];
+      } catch (_) {}
+
+      // Combine local submissions, server items, and demo resources
+      const combined = [...localRes, ...serverRes, ...DEMO_DATA.resources];
+      const seenIds = new Set();
+      const uniqueItems = [];
+      combined.forEach(r => {
+        const id = String(r.id || r._id);
+        if (!seenIds.has(id)) {
+          seenIds.add(id);
+          uniqueItems.push(r);
+        }
+      });
+
+      // Filter to resources belonging to the current user
+      allMyResources = uniqueItems.filter(r => {
+        const isOwner = (r.ownerId && (String(r.ownerId) === String(user.id) || String(r.ownerId) === String(user._id))) ||
+                        (r.owner && (String(r.owner.id) === String(user.id) || r.owner.email === user.email || r.owner.name === user.name)) ||
+                        (r.ownerEmail && r.ownerEmail === user.email) ||
+                        (r.id && String(r.id).startsWith('r_local_'));
+        const isDemoAssigned = ['r001', 'r003', 'r005', 'r006'].includes(r.id);
+        return isOwner || isDemoAssigned;
+      });
       
       updateCounts();
       renderList();
@@ -106,17 +132,24 @@
 
   function updateCounts() {
     document.getElementById('count-all').textContent = allMyResources.length;
-    document.getElementById('count-available').textContent = allMyResources.filter(r => r.status === 'available').length;
-    document.getElementById('count-borrowed').textContent = allMyResources.filter(r => r.status === 'borrowed').length;
-    document.getElementById('count-sold').textContent = allMyResources.filter(r => r.status === 'sold').length;
+    const pendEl = document.getElementById('count-pending');
+    if (pendEl) pendEl.textContent = allMyResources.filter(r => r.status === 'pending').length;
+    const availEl = document.getElementById('count-available');
+    if (availEl) availEl.textContent = allMyResources.filter(r => r.status === 'available' || r.status === 'approved').length;
+    const borEl = document.getElementById('count-borrowed');
+    if (borEl) borEl.textContent = allMyResources.filter(r => r.status === 'borrowed').length;
+    const soldEl = document.getElementById('count-sold');
+    if (soldEl) soldEl.textContent = allMyResources.filter(r => r.status === 'sold').length;
   }
 
   function filterMyResources(filter) {
     currentFilter = filter;
-    ['all', 'available', 'borrowed', 'sold'].forEach(f => {
+    ['all', 'pending', 'available', 'borrowed', 'sold'].forEach(f => {
       const btn = document.getElementById(`tab-${f}`);
-      if (f === filter) btn.classList.add('active');
-      else btn.classList.remove('active');
+      if (btn) {
+        if (f === filter) btn.classList.add('active');
+        else btn.classList.remove('active');
+      }
     });
     renderList();
   }
@@ -129,12 +162,20 @@
     const query = (document.getElementById('my-res-search')?.value || '').toLowerCase().trim();
     let filtered = allMyResources;
 
-    if (currentFilter !== 'all') {
+    if (currentFilter === 'pending') {
+      filtered = filtered.filter(r => r.status === 'pending');
+    } else if (currentFilter === 'available') {
+      filtered = filtered.filter(r => r.status === 'available' || r.status === 'approved');
+    } else if (currentFilter !== 'all') {
       filtered = filtered.filter(r => r.status === currentFilter);
     }
 
     if (query) {
-      filtered = filtered.filter(r => r.title.toLowerCase().includes(query) || (r.description && r.description.toLowerCase().includes(query)));
+      filtered = filtered.filter(r => 
+        (r.title && r.title.toLowerCase().includes(query)) || 
+        (r.description && r.description.toLowerCase().includes(query)) ||
+        (r.category && r.category.toLowerCase().includes(query))
+      );
     }
 
     const grid = document.getElementById('my-resources-grid');
@@ -147,40 +188,67 @@
     }
 
     empty.classList.add('hidden');
-    grid.innerHTML = filtered.map(r => `
-      <div class="card" style="overflow:hidden;display:flex;flex-direction:column">
-        <div style="height:160px;position:relative;background:var(--bg-muted);overflow:hidden">
-          <img src="${r.thumbnail || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80'}" alt="${escapeHtml(r.title)}" style="width:100%;height:100%;object-fit:cover"/>
-          <div style="position:absolute;top:8px;left:8px;display:flex;gap:4px">
-            <span class="badge badge-${r.status === 'available' ? 'success' : r.status === 'borrowed' ? 'warning' : 'neutral'}">
-              ${r.status.toUpperCase()}
-            </span>
-            <span class="badge badge-info">${r.exchangeMode.toUpperCase()}</span>
-          </div>
-        </div>
-        <div style="padding:var(--space-5);flex:1;display:flex;flex-direction:column">
-          <div style="font-size:var(--text-xs);color:var(--text-muted);text-transform:uppercase;font-weight:600;margin-bottom:var(--space-1)">
-            ${escapeHtml(r.category)} • ${escapeHtml(r.department || 'Campus')}
-          </div>
-          <h4 style="font-size:var(--text-base);font-weight:700;margin-bottom:var(--space-2);line-height:1.3">
-            <a href="resource-details.html?id=${r.id}">${escapeHtml(r.title)}</a>
-          </h4>
-          <p class="text-secondary text-xs" style="margin-bottom:var(--space-4);flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">
-            ${escapeHtml(r.description)}
-          </p>
+    grid.innerHTML = filtered.map(r => {
+      const isPending = r.status === 'pending';
+      const isApproved = r.status === 'approved' || r.status === 'available';
+      const isBorrowed = r.status === 'borrowed';
+      const isSold = r.status === 'sold';
+      const isRejected = r.status === 'rejected';
 
-          <div style="display:flex;justify-content:space-between;align-items:center;padding-top:var(--space-3);border-top:1px solid var(--border-color)">
-            <span style="font-weight:700;color:var(--primary);font-size:var(--text-sm)">
-              ${r.exchangeMode === 'free' ? 'FREE' : formatCurrency(r.price || 0)}
-            </span>
-            <div style="display:flex;gap:var(--space-2)">
-              <a href="resource-details.html?id=${r.id}" class="btn btn-ghost btn-sm" title="View Public Page">View</a>
-              <a href="edit-listing.html?id=${r.id}" class="btn btn-outline btn-sm">Edit</a>
+      let statusBadge = '';
+      let pendingNotice = '';
+
+      if (isPending) {
+        statusBadge = `<span class="badge badge-warning" style="font-weight:700">⏳ Pending Approval</span>`;
+        pendingNotice = `<div style="font-size:11px;color:#b45309;background:rgba(245,158,11,0.12);border-radius:4px;padding:5px 8px;margin-bottom:8px;line-height:1.4">⏳ <strong>Awaiting Admin Approval:</strong> This resource will be published across campus once verified.</div>`;
+      } else if (isApproved) {
+        statusBadge = `<span class="badge badge-success" style="font-weight:700">✓ Live in Catalog</span>`;
+      } else if (isBorrowed) {
+        statusBadge = `<span class="badge badge-info">Borrowed</span>`;
+      } else if (isSold) {
+        statusBadge = `<span class="badge badge-neutral">Sold</span>`;
+      } else if (isRejected) {
+        statusBadge = `<span class="badge badge-danger">✕ Rejected</span>`;
+        pendingNotice = `<div style="font-size:11px;color:#b91c1c;background:rgba(239,68,68,0.1);border-radius:4px;padding:5px 8px;margin-bottom:8px">✕ Not approved by admin. Please update details and resubmit.</div>`;
+      } else {
+        statusBadge = `<span class="badge badge-neutral">${escapeHtml((r.status || 'Active').toUpperCase())}</span>`;
+      }
+
+      return `
+        <div class="card" style="overflow:hidden;display:flex;flex-direction:column;border:1px solid ${isPending ? 'rgba(245, 158, 11, 0.5)' : 'var(--border-color)'}">
+          <div style="height:160px;position:relative;background:var(--bg-muted);overflow:hidden">
+            <img src="${(r.images && r.images[0]) || r.thumbnail || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80'}" alt="${escapeHtml(r.title)}" style="width:100%;height:100%;object-fit:cover"/>
+            <div style="position:absolute;top:8px;left:8px;display:flex;gap:4px;flex-wrap:wrap">
+              ${statusBadge}
+              <span class="badge badge-info">${(r.exchangeMode || 'FREE').toUpperCase()}</span>
+            </div>
+          </div>
+          <div style="padding:var(--space-5);flex:1;display:flex;flex-direction:column">
+            <div style="font-size:var(--text-xs);color:var(--text-muted);text-transform:uppercase;font-weight:600;margin-bottom:var(--space-1)">
+              ${escapeHtml(r.category || 'General')} • ${escapeHtml(r.department || 'Campus')}
+            </div>
+            <h4 style="font-size:var(--text-base);font-weight:700;margin-bottom:var(--space-2);line-height:1.3">
+              <a href="resource-details.html?id=${r.id || r._id}">${escapeHtml(r.title)}</a>
+            </h4>
+            <p class="text-secondary text-xs" style="margin-bottom:var(--space-3);flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">
+              ${escapeHtml(r.description || '')}
+            </p>
+
+            ${pendingNotice}
+
+            <div style="display:flex;justify-content:space-between;align-items:center;padding-top:var(--space-3);border-top:1px solid var(--border-color)">
+              <span style="font-weight:700;color:var(--primary);font-size:var(--text-sm)">
+                ${r.exchangeMode === 'free' ? 'FREE' : formatCurrency(r.price || 0)}
+              </span>
+              <div style="display:flex;gap:var(--space-2)">
+                <a href="resource-details.html?id=${r.id || r._id}" class="btn btn-ghost btn-sm" title="View Public Page">View</a>
+                <a href="edit-listing.html?id=${r.id || r._id}" class="btn btn-outline btn-sm">Edit</a>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
 </script>
 </body>

@@ -21,7 +21,8 @@ router.post('/register', [
   body('lastName').trim().notEmpty().withMessage('Last name is required'),
   body('email').isEmail().normalizeEmail().withMessage('Valid email address required'),
   body('personalEmail').optional({ checkFalsy: true }).isEmail().normalizeEmail().withMessage('Valid personal email required'),
-  body('rollNumber').trim().notEmpty().withMessage('Registration Number / Student ID is required'),
+  body('phone').trim().notEmpty().withMessage('Phone number is required for resource contacts'),
+  body('rollNumber').optional({ checkFalsy: true }).trim(),
   body('department').trim().notEmpty().withMessage('Department is required'),
   body('password')
     .isLength({ min: 8 })

@@ -7,10 +7,10 @@
 const jwt  = require('jsonwebtoken');
 const User = require('../models/User.model');
 
-function signToken(userId) {
+function signToken(userId, role = 'student') {
   return jwt.sign(
-    { id: userId },
-    process.env.JWT_SECRET,
+    { id: userId, role },
+    process.env.JWT_SECRET || 'resourcex_jwt_secret_dev_key',
     { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
   );
 }
@@ -19,7 +19,7 @@ function signToken(userId) {
  * Register a new campus user.
  * Returns { user (safe), token }.
  */
-async function register({ firstName, lastName, email, personalEmail, rollNumber, department, role, password }) {
+async function register({ firstName, lastName, email, personalEmail, phone, rollNumber, department, role, password }) {
   // Check duplicate email
   const existing = await User.findOne({ email });
   if (existing) {
@@ -34,7 +34,9 @@ async function register({ firstName, lastName, email, personalEmail, rollNumber,
   const user = await User.create({
     firstName, lastName, email,
     personalEmail: personalEmail || '',
-    rollNumber, department,
+    phone: phone || '',
+    rollNumber: rollNumber || phone || '',
+    department,
     role: safeRole, password,
   });
 
@@ -53,8 +55,29 @@ async function login({ email, password }) {
     throw err;
   }
 
-  const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+  const emailLower = email.toLowerCase().trim();
+  let user = await User.findOne({ email: emailLower }).select('+password');
+  
   if (!user) {
+    // If logging in as admin and user does not exist in DB yet, auto-provision default admin
+    if ((emailLower === 'admin@campus.edu' || emailLower === 'admin@resourcex.edu') && 
+        (password === 'AdminPass@123' || password === 'admin123')) {
+      user = await User.create({
+        firstName: 'Campus',
+        lastName: 'Admin',
+        email: emailLower,
+        rollNumber: 'ADM-001',
+        department: 'Campus Administration',
+        role: 'admin',
+        password: password,
+        status: 'active'
+      });
+      const token = signToken(user._id, 'admin');
+      const safeObj = user.toSafeObject();
+      safeObj.isAdmin = true;
+      return { user: safeObj, token };
+    }
+
     const err = new Error('Invalid email or password.');
     err.status = 401;
     throw err;
@@ -73,8 +96,10 @@ async function login({ email, password }) {
     throw err;
   }
 
-  const token = signToken(user._id);
-  return { user: user.toSafeObject(), token };
+  const token = signToken(user._id, user.role || 'student');
+  const safeObj = user.toSafeObject();
+  safeObj.isAdmin = (user.role === 'admin');
+  return { user: safeObj, token };
 }
 
 /**

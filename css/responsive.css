@@ -1,11 +1,59 @@
 /* ============================================================
    ResourceX – Responsive Styles & Breakpoints
+   Ensures all options, tools, tables, cards, and forms are
+   completely visible and accessible across all screen sizes.
    ============================================================ */
+
+/* ── Laptops and Medium Displays (< 1200px) ── */
+@media (max-width: 1200px) {
+  :root {
+    --sidebar-width: 230px;
+    --container-padding: 1.25rem;
+  }
+
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .quick-actions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .admin-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .navbar .container {
+    gap: var(--space-3);
+  }
+
+  .nav-link {
+    padding: var(--space-2) var(--space-2);
+    font-size: var(--text-xs);
+  }
+
+  .nav-actions {
+    gap: var(--space-2);
+  }
+
+  .main-search-bar {
+    max-width: 100%;
+  }
+}
 
 /* ── Tablets and Below (< 992px) ── */
 @media (max-width: 992px) {
   .dashboard-layout {
     grid-template-columns: 1fr;
+    display: block;
   }
 
   .dashboard-sidebar {
@@ -15,7 +63,7 @@
     width: 280px;
     height: 100vh;
     z-index: var(--z-modal);
-    background: var(--bg-surface);
+    background: var(--bg-surface, #ffffff);
     box-shadow: var(--shadow-xl);
     transition: left var(--transition-base);
     display: flex;
@@ -28,6 +76,9 @@
 
   .dashboard-content {
     padding: var(--space-4);
+    min-width: 0;
+    width: 100%;
+    overflow-x: auto;
   }
 
   .quick-actions {
@@ -42,6 +93,10 @@
     grid-template-columns: 1fr !important;
   }
 
+  .grid-3 {
+    grid-template-columns: 1fr !important;
+  }
+
   .listing-form-grid {
     grid-template-columns: 1fr !important;
   }
@@ -50,7 +105,8 @@
     grid-template-columns: 1fr !important;
   }
 
-  .details-layout {
+  .details-layout,
+  .resource-details-layout {
     grid-template-columns: 1fr !important;
   }
 
@@ -65,12 +121,72 @@
   .profile-stats-row {
     justify-content: center;
   }
+
+  .profile-content-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .browse-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .browse-sidebar {
+    display: none;
+    position: static;
+  }
+
+  .filter-drawer-trigger {
+    display: flex !important;
+  }
+
+  /* Main search bar adaptivity */
+  .main-search-bar {
+    flex-wrap: wrap;
+    border-radius: var(--radius-xl);
+  }
+
+  .main-search-bar input {
+    width: 100%;
+    flex: 1 1 100%;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .main-search-bar select {
+    flex: 1 1 140px;
+  }
+
+  .main-search-bar .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  /* Table safety */
+  .table-wrapper,
+  .card:has(> .table),
+  .card:has(> table) {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  .table {
+    min-width: 580px;
+  }
 }
 
 /* ── Mobile Devices (< 768px) ── */
 @media (max-width: 768px) {
+  :root {
+    --container-padding: 0.875rem;
+    --nav-height: 3.5rem;
+  }
+
   .navbar .nav-links {
     display: none;
+  }
+
+  .hamburger {
+    display: flex !important;
   }
 
   .quick-actions {
@@ -78,6 +194,10 @@
   }
 
   .grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .grid-2 {
     grid-template-columns: 1fr !important;
   }
 
@@ -92,6 +212,8 @@
 
   .modal {
     width: 95% !important;
+    max-height: 90vh;
+    overflow-y: auto;
     margin: var(--space-2);
   }
 
@@ -105,6 +227,43 @@
 
   .hero-title {
     font-size: var(--text-2xl) !important;
+  }
+
+  .tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+
+  .tab-btn {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--text-xs);
+  }
+
+  .main-search-bar {
+    flex-direction: column;
+    padding: var(--space-3);
+    gap: var(--space-2);
+  }
+
+  .main-search-bar select {
+    border-left: none;
+    border-top: 1px solid var(--border-color);
+    padding: var(--space-2) var(--space-3);
+    width: 100%;
+  }
+
+  .main-search-bar .btn {
+    width: 100%;
+    border-radius: var(--radius-lg);
+  }
+
+  .auth-page {
+    grid-template-columns: 1fr !important;
+  }
+
+  .auth-visual {
+    display: none !important;
   }
 }
 
@@ -120,6 +279,10 @@
   }
 
   .type-selector {
-    flex-direction: column;
+    grid-template-columns: 1fr !important;
+  }
+
+  .resource-thumb-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }

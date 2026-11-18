@@ -10,6 +10,7 @@ const helmet     = require('helmet');
 const morgan     = require('morgan');
 const rateLimit  = require('express-rate-limit');
 const path       = require('path');
+const fs         = require('fs');
 
 const authRoutes         = require('./routes/auth.routes');
 const resourceRoutes     = require('./routes/resource.routes');
@@ -69,6 +70,9 @@ app.use('/api', apiLimiter);
 
 /* ── Static uploads ── */
 const uploadsDir = path.join(__dirname, '..', process.env.UPLOAD_DIR || 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  try { fs.mkdirSync(uploadsDir, { recursive: true }); } catch (_) {}
+}
 app.use('/uploads', express.static(uploadsDir));
 
 /* ── Serve frontend static files ── */
@@ -77,6 +81,7 @@ app.use(express.static(rootDir));
 
 /* ── API Routes ── */
 app.use('/api/auth',          authRoutes);
+app.use('/api/resources',     reviewRoutes); // Nested reviews: /api/resources/:id/reviews
 app.use('/api/resources',     resourceRoutes);
 app.use('/api/reservations',  reservationRoutes);
 app.use('/api/transactions',  transactionRoutes);
@@ -84,8 +89,6 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/requirements',  requirementRoutes);
 app.use('/api/wishlist',      wishlistRoutes);
 app.use('/api/admin',         adminRoutes);
-// Reviews are nested under resources: /api/resources/:id/reviews
-app.use('/api/resources',     reviewRoutes);
 
 /* ── Health check ── */
 app.get('/api/health', (req, res) => {

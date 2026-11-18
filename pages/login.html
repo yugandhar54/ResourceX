@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="../css/layout.css"/>
   <link rel="stylesheet" href="../css/components.css"/>
   <link rel="stylesheet" href="../css/auth.css"/>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 <div class="auth-page">
@@ -54,22 +55,52 @@
           <div class="nav-logo-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
           <span class="nav-logo-text">Resource<span>X</span></span>
         </a>
-        <h1>Sign In</h1>
-        <p>Enter your credentials to access your account.</p>
+        <h1><span id="login-title">Sign In</span></h1>
+        <p id="login-subtitle">Enter your credentials to access your account.</p>
       </div>
 
-      <!-- Continue with Google Button -->
-      <button type="button" class="btn btn-google" id="google-signin-btn" style="margin-bottom:var(--space-2)">
-        <svg class="google-icon" width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
-          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
-        </svg>
-        <span>Continue with Google</span>
-      </button>
+      <!-- Login Role / Portal Selector -->
+      <div style="display:flex;background:var(--bg-muted);padding:4px;border-radius:var(--radius-lg);margin-bottom:var(--space-5);border:1px solid var(--border-color)">
+        <button type="button" id="tab-login-student" class="tab-btn active" style="flex:1;text-align:center;padding:8px 12px;font-size:var(--text-xs);font-weight:700;border-radius:var(--radius-md);border:none;cursor:pointer" onclick="switchLoginRole('student')">
+          🎓 Campus Member
+        </button>
+        <button type="button" id="tab-login-admin" class="tab-btn" style="flex:1;text-align:center;padding:8px 12px;font-size:var(--text-xs);font-weight:700;border-radius:var(--radius-md);border:none;cursor:pointer" onclick="switchLoginRole('admin')">
+          🛡️ Admin Portal
+        </button>
+      </div>
 
-      <div class="auth-divider" style="margin:var(--space-4) 0"><span>or continue with email</span></div>
+      <!-- Quick Admin Demo Credentials Box (shown in Admin Mode) -->
+      <div id="admin-credentials-hint" style="display:none;background:rgba(37,99,235,0.08);border:1px solid rgba(37,99,235,0.25);border-radius:var(--radius-md);padding:10px 14px;margin-bottom:var(--space-4);font-size:var(--text-xs)">
+        <div style="font-weight:700;color:var(--primary);margin-bottom:4px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+          <span>🛡️ Campus Administrator Credentials</span>
+          <button type="button" class="btn btn-outline btn-xs" onclick="fillAdminCredentials()" style="padding:2px 8px;font-size:11px;background:#fff">
+            ⚡ Quick-fill Admin
+          </button>
+        </div>
+        <div style="color:var(--text-secondary);line-height:1.4">
+          Email: <strong>admin@campus.edu</strong> &bull; Password: <strong>AdminPass@123</strong>
+        </div>
+      </div>
+
+      <!-- Google Sign-In Container (Campus Member Mode) -->
+      <div id="google-signin-wrapper">
+        <button type="button" class="btn btn-google" id="google-signin-btn" style="margin-bottom:var(--space-1)">
+          <svg class="google-icon" width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+          </svg>
+          <span>Continue with Google</span>
+        </button>
+        <div style="text-align:center;margin-bottom:var(--space-2)">
+          <a href="#" id="google-troubleshoot-link" style="font-size:11px;color:var(--text-muted);text-decoration:underline">
+            Google Sign-In setup &amp; options
+          </a>
+        </div>
+
+        <div class="auth-divider" style="margin:var(--space-4) 0"><span>or continue with email</span></div>
+      </div>
 
       <form class="auth-form" id="login-form" novalidate autocomplete="on">
         <div class="form-group">
@@ -120,6 +151,12 @@
         Don't have an account? <a href="./register.html">Create one — it's free</a>
       </p>
 
+      <p class="text-center" style="margin-top:var(--space-2)">
+        <a href="./admin-login.html" class="text-xs" style="color:var(--primary);font-weight:600">
+          🛡️ Dedicated Admin Portal Sign In →
+        </a>
+      </p>
+
       <p class="text-center" style="margin-top:var(--space-4)">
         <a href="../index.html" class="text-sm text-muted">← Back to Home</a>
       </p>
@@ -133,18 +170,34 @@
 <script src="../js/common.js"></script>
 <script src="../js/google-auth.js"></script>
 <script>
+let currentRoleMode = 'student';
+
 document.addEventListener('DOMContentLoaded', () => {
   Theme.init();
   GoogleAuth.init('google-signin-btn');
 
+  // Check URL parameters for admin mode
+  const urlParams = new URLSearchParams(window.location.search);
+  const roleParam = urlParams.get('role') || urlParams.get('portal');
+  if (roleParam === 'admin' || urlParams.get('admin') === 'true') {
+    switchLoginRole('admin');
+  }
+
   // If already logged in, redirect
   if (Auth.isLoggedIn()) {
-    const next = new URLSearchParams(window.location.search).get('next');
-    window.location.href = next || './dashboard.html';
+    const user = Auth.getUser();
+    const next = urlParams.get('next');
+    if (next) {
+      window.location.href = next;
+    } else if (user && (user.role === 'admin' || user.isAdmin)) {
+      window.location.href = './admin-dashboard.html';
+    } else {
+      window.location.href = './dashboard.html';
+    }
+    return;
   }
 
   // Pre-fill email or show registration success notice if redirected
-  const urlParams = new URLSearchParams(window.location.search);
   const emailParam = urlParams.get('email');
   if (emailParam) {
     document.getElementById('login-email').value = emailParam;
@@ -182,20 +235,96 @@ document.addEventListener('DOMContentLoaded', () => {
       const password = document.getElementById('login-password').value;
       const result   = await API.auth.login({ email, password });
 
-      Auth.login(result.user, result.token);
-      Toast.success('Signed in successfully. Redirecting…', 'Welcome back!');
+      const user = result.user;
+      const isAdmin = (user && (user.role === 'admin' || user.isAdmin === true)) || currentRoleMode === 'admin';
+      if (isAdmin && user) {
+        user.role = 'admin';
+        user.isAdmin = true;
+      }
+
+      Auth.login(user, result.token);
+
+      if (isAdmin) {
+        Toast.success('Signed in as Campus Administrator. Redirecting to Admin Console…', 'Admin Authenticated');
+      } else {
+        Toast.success('Signed in successfully. Redirecting…', 'Welcome back!');
+      }
 
       setTimeout(() => {
         const next = new URLSearchParams(window.location.search).get('next');
-        window.location.href = next || './dashboard.html';
-      }, 800);
+        if (next) {
+          window.location.href = next;
+        } else if (isAdmin) {
+          window.location.href = './admin-dashboard.html';
+        } else {
+          window.location.href = './dashboard.html';
+        }
+      }, 700);
     } catch (err) {
       btn.disabled = false;
-      btn.textContent = 'Sign In';
+      btn.textContent = currentRoleMode === 'admin' ? 'Sign In as Administrator 🛡️' : 'Sign In';
       showFieldError('email-error', err.message || 'Login failed. Please try again.');
     }
   });
 });
+
+function switchLoginRole(role) {
+  currentRoleMode = role;
+  const isAdm = role === 'admin';
+
+  // Toggle tab buttons
+  const tabStudent = document.getElementById('tab-login-student');
+  const tabAdmin = document.getElementById('tab-login-admin');
+  if (tabStudent && tabAdmin) {
+    if (isAdm) {
+      tabAdmin.classList.add('active');
+      tabAdmin.style.background = 'var(--primary)';
+      tabAdmin.style.color = '#fff';
+      tabStudent.classList.remove('active');
+      tabStudent.style.background = 'transparent';
+      tabStudent.style.color = 'var(--text-secondary)';
+    } else {
+      tabStudent.classList.add('active');
+      tabStudent.style.background = 'var(--primary)';
+      tabStudent.style.color = '#fff';
+      tabAdmin.classList.remove('active');
+      tabAdmin.style.background = 'transparent';
+      tabAdmin.style.color = 'var(--text-secondary)';
+    }
+  }
+
+  // Update UI texts & sections
+  const titleEl = document.getElementById('login-title');
+  const subEl = document.getElementById('login-subtitle');
+  const hintEl = document.getElementById('admin-credentials-hint');
+  const googleWrapper = document.getElementById('google-signin-wrapper');
+  const submitBtn = document.getElementById('login-submit-btn');
+  const emailInput = document.getElementById('login-email');
+
+  if (isAdm) {
+    if (titleEl) titleEl.textContent = 'Admin Portal Sign In';
+    if (subEl) subEl.textContent = 'Administrative authentication for resource approval, user moderation, and campus analytics.';
+    if (hintEl) hintEl.style.display = 'block';
+    if (googleWrapper) googleWrapper.style.display = 'none';
+    if (submitBtn) submitBtn.textContent = 'Sign In as Administrator 🛡️';
+    if (emailInput && !emailInput.value) emailInput.placeholder = 'admin@campus.edu';
+  } else {
+    if (titleEl) titleEl.textContent = 'Sign In';
+    if (subEl) subEl.textContent = 'Enter your credentials to access your account.';
+    if (hintEl) hintEl.style.display = 'none';
+    if (googleWrapper) googleWrapper.style.display = 'block';
+    if (submitBtn) submitBtn.textContent = 'Sign In';
+    if (emailInput && emailInput.placeholder === 'admin@campus.edu') emailInput.placeholder = 'e.g. yugandharchandu54@gmail.com';
+  }
+  clearErrors();
+}
+
+function fillAdminCredentials() {
+  document.getElementById('login-email').value = 'admin@campus.edu';
+  document.getElementById('login-password').value = 'AdminPass@123';
+  clearErrors();
+  Toast.info('Admin demo credentials populated. Click Sign In to enter.', 'Credentials Ready');
+}
 
 function validateLoginForm() {
   let valid = true;

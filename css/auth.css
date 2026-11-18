@@ -6,7 +6,7 @@
   min-height: 100vh;
   min-height: 100dvh;
   display: grid;
-  grid-template-columns: minmax(360px, 44%) minmax(0, 56%);
+  grid-template-columns: minmax(300px, 38%) minmax(0, 62%);
   background: var(--bg-primary);
   width: 100%;
   position: relative;

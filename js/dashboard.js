@@ -17,6 +17,12 @@ async function loadDashboardData(user) {
   document.getElementById('welcome-heading').innerHTML = `Welcome back, <span id="user-display-name">${escapeHtml(user.name || 'Campus Member')}</span>!`;
   document.getElementById('welcome-subtext').textContent = `${user.role === 'faculty' ? 'Faculty Member' : 'Student'} • ${user.department || 'Computer Science & Engineering'}`;
 
+  // Only show Admin Approval Queue shortcut if user is an administrator
+  const adminBtn = document.getElementById('admin-queue-btn');
+  if (adminBtn) {
+    adminBtn.style.display = (typeof Auth !== 'undefined' && Auth.isAdmin()) ? 'inline-flex' : 'none';
+  }
+
   try {
     // 1. Load Resources
     const allResourcesRes = await API.resources.list({ pageSize: 50 });
@@ -48,6 +54,11 @@ async function loadDashboardData(user) {
     document.getElementById('stat-sale-items').textContent = `${saleItems.length} Items`;
     document.getElementById('stat-wishlist').textContent = `${wishlistIds.length} Items`;
     document.getElementById('stat-unread-notifs').textContent = `${unreadNotifs.length} New`;
+
+    const listedSub = document.querySelector('#stat-listed + div');
+    if (listedSub) listedSub.textContent = `${myListed.length} in campus catalog`;
+    const borrowedSub = document.querySelector('#stat-borrowed + div');
+    if (borrowedSub) borrowedSub.textContent = activeRes.length > 0 ? `${activeRes.length} items currently borrowed` : 'No active borrowings';
 
     // Render Reservations widget
     renderReservationsWidget(reservations.slice(0, 4));

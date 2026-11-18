@@ -155,7 +155,12 @@ const Auth = {
   isLoggedIn() {
     return !!this.getUser();
   },
+  isAdmin() {
+    const user = this.getUser();
+    return !!(user && (user.role === 'admin' || user.isAdmin === true));
+  },
   login(user, token) {
+    if (user && user.role === 'admin') user.isAdmin = true;
     this.setUser(user);
     if (token) sessionStorage.setItem('rx_token', token);
   },
@@ -168,6 +173,23 @@ const Auth = {
     if (!this.isLoggedIn()) {
       const here = encodeURIComponent(window.location.href);
       window.location.href = getRootPath() + 'pages/login.html?next=' + here;
+      return false;
+    }
+    return true;
+  },
+  requireAdmin() {
+    if (!this.isLoggedIn()) {
+      if (document.body) document.body.style.display = 'none';
+      const here = encodeURIComponent(window.location.href);
+      window.location.href = getRootPath() + 'pages/admin-login.html?next=' + here;
+      return false;
+    }
+    if (!this.isAdmin()) {
+      if (document.body) document.body.style.display = 'none';
+      try {
+        sessionStorage.setItem('rx_flash_message', JSON.stringify({ type: 'warning', text: 'Access Denied: Administrator privileges required to access the admin console.' }));
+      } catch (_) {}
+      window.location.href = getRootPath() + 'pages/dashboard.html';
       return false;
     }
     return true;
@@ -217,6 +239,7 @@ function initNavbar() {
               <a href="${root}pages/profile.html"      class="dropdown-item" role="menuitem"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</a>
               <a href="${root}pages/dashboard.html"    class="dropdown-item" role="menuitem"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a>
               <a href="${root}pages/my-resources.html" class="dropdown-item" role="menuitem"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>My Resources</a>
+              ${Auth.isAdmin() ? `<a href="${root}pages/admin-dashboard.html" class="dropdown-item" role="menuitem"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>🛡️ Admin Approval Queue</a>` : ''}
               <a href="${root}pages/notifications.html" class="dropdown-item" role="menuitem"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Notifications</a>
               <div class="dropdown-divider"></div>
               <button class="dropdown-item" id="logout-btn" role="menuitem"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign Out</button>
@@ -269,9 +292,17 @@ function initNavbar() {
   const hamburger = document.getElementById('hamburger');
   const mobileNav = document.getElementById('mobile-nav');
   hamburger?.addEventListener('click', () => {
-    hamburger.classList.toggle('open');
-    mobileNav?.classList.toggle('open');
-    hamburger.setAttribute('aria-expanded', hamburger.classList.contains('open'));
+    const sidebar = document.getElementById('dashboard-sidebar');
+    if (sidebar && window.innerWidth <= 992) {
+      const isOpen = sidebar.classList.toggle('open');
+      document.getElementById('sidebar-overlay')?.classList.toggle('active', isOpen);
+      hamburger.classList.toggle('open', isOpen);
+      hamburger.setAttribute('aria-expanded', isOpen);
+    } else {
+      hamburger.classList.toggle('open');
+      mobileNav?.classList.toggle('open');
+      hamburger.setAttribute('aria-expanded', hamburger.classList.contains('open'));
+    }
   });
 
   // User dropdown
@@ -317,6 +348,7 @@ function initFooter() {
           <h4>Account</h4>
           <ul>
             <li><a href="${root}pages/login.html">Login</a></li>
+            <li><a href="${root}pages/admin-login.html" style="color:var(--primary);font-weight:600">🛡️ Admin Portal</a></li>
             <li><a href="${root}pages/register.html">Register</a></li>
             <li><a href="${root}pages/dashboard.html">Dashboard</a></li>
             <li><a href="${root}pages/profile.html">My Profile</a></li>
@@ -531,8 +563,8 @@ function renderPagination(current, total, onPage) {
    ══════════════════════════════════════════════════════════ */
 function renderDashboardSidebar(activePage) {
   const root = getRootPath();
-  const user = Auth.getUser() || DEMO_DATA.currentUser;
-  const isAdmin = user.role === 'admin';
+  const user = Auth.getUser() || DEMO_DATA.currentUser || { name: 'Campus Member', role: 'student', initials: 'CM' };
+  const isAdmin = Auth.isAdmin();
 
   const navItems = [
     { href: 'dashboard.html',       label: 'Dashboard',       icon: 'grid', page: 'dashboard' },
@@ -582,13 +614,12 @@ function renderDashboardSidebar(activePage) {
     `).join('');
   }
 
-  return `
-  <div class="dashboard-sidebar" id="dashboard-sidebar" role="complementary" aria-label="Dashboard navigation">
+  const sidebarContent = `
     <div style="padding:0 var(--space-4) var(--space-4);border-bottom:1px solid var(--border-color);margin-bottom:var(--space-4)">
       <div style="display:flex;align-items:center;gap:var(--space-3)">
-        <div class="avatar avatar-md">${escapeHtml((user.initials || user.name.split(' ').map(n=>n[0]).join('').slice(0,2)))}</div>
-        <div>
-          <div style="font-size:var(--text-sm);font-weight:600">${escapeHtml(user.name)}</div>
+        <div class="avatar avatar-md">${escapeHtml((user.initials || (user.name ? user.name.split(' ').filter(Boolean).map(n=>n[0]).join('').slice(0,2) : 'U')))}</div>
+        <div style="min-width:0;flex:1">
+          <div style="font-size:var(--text-sm);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(user.name || 'Campus Member')}</div>
           <div class="badge badge-primary" style="margin-top:2px">${escapeHtml(user.role || 'student')}</div>
         </div>
       </div>
@@ -604,11 +635,30 @@ function renderDashboardSidebar(activePage) {
       </div>` : ''}
     </nav>
     <div style="padding:var(--space-4);margin-top:auto;border-top:1px solid var(--border-color)">
-      <a href="../pages/browse.html" class="btn btn-outline btn-sm" style="width:100%;justify-content:center">
+      <a href="${root}pages/browse.html" class="btn btn-outline btn-sm" style="width:100%;justify-content:center">
         Explore Resources
       </a>
-    </div>
-  </div>`;
+    </div>`;
+
+  const existingEl = document.getElementById('dashboard-sidebar');
+  if (existingEl) {
+    existingEl.innerHTML = sidebarContent;
+  }
+
+  // Ensure sidebar overlay exists for mobile drawers
+  if (typeof document !== 'undefined' && !document.getElementById('sidebar-overlay')) {
+    const overlay = document.createElement('div');
+    overlay.id = 'sidebar-overlay';
+    overlay.className = 'sidebar-overlay';
+    overlay.addEventListener('click', () => {
+      document.getElementById('dashboard-sidebar')?.classList.remove('open');
+      overlay.classList.remove('active');
+      document.getElementById('hamburger')?.classList.remove('open');
+    });
+    document.body.appendChild(overlay);
+  }
+
+  return `<aside class="dashboard-sidebar" id="dashboard-sidebar" role="complementary" aria-label="Dashboard navigation">${sidebarContent}</aside>`;
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -623,6 +673,22 @@ document.addEventListener('DOMContentLoaded', () => {
   loadingEl.innerHTML = '<div class="spinner"></div>';
   loadingEl.setAttribute('aria-label', 'Loading');
   document.body.appendChild(loadingEl);
+
+  // Check for flash messages (e.g. access denied redirect)
+  try {
+    const flash = sessionStorage.getItem('rx_flash_message');
+    if (flash) {
+      sessionStorage.removeItem('rx_flash_message');
+      const parsed = JSON.parse(flash);
+      if (parsed && parsed.text) {
+        setTimeout(() => {
+          if (parsed.type === 'warning') Toast.warning(parsed.text, 'Access Denied');
+          else if (parsed.type === 'error') Toast.error(parsed.text);
+          else Toast.success(parsed.text);
+        }, 300);
+      }
+    }
+  } catch (_) {}
 });
 
 // Expose globals

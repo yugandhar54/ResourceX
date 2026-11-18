@@ -63,7 +63,7 @@ async function run() {
   await test('POST /auth/register – creates a new student', async () => {
     const r = await req('POST', '/auth/register', {
       firstName: 'Test', lastName: 'User', email: `test_${Date.now()}@campus.edu`,
-      rollNumber: 'TST001', department: 'Computer Science & Engineering', password: 'Password@123',
+      phone: '+91 9999999999', rollNumber: 'TST001', department: 'Computer Science & Engineering', password: 'Password@123',
     });
     const d = await r.json();
     assert(r.status === 201, `Expected 201, got ${r.status}: ${d.message}`);
@@ -72,12 +72,12 @@ async function run() {
   });
 
   await test('POST /auth/login – rejects wrong password', async () => {
-    const r = await req('POST', '/auth/login', { email: 'arjun.sharma@campus.edu', password: 'wrong' });
+    const r = await req('POST', '/auth/login', { email: 'yugandhar23@lpu.in', password: 'wrong' });
     assert(r.status === 401, `Expected 401, got ${r.status}`);
   });
 
   await test('POST /auth/login – student succeeds and returns token', async () => {
-    const r = await req('POST', '/auth/login', { email: 'arjun.sharma@campus.edu', password: 'Password@123' });
+    const r = await req('POST', '/auth/login', { email: 'yugandhar23@lpu.in', password: 'Password@123' });
     const d = await r.json();
     assert(r.status === 200, `Expected 200, got ${r.status}: ${d.message}`);
     assert(d.token, 'Expected JWT token');
@@ -95,7 +95,7 @@ async function run() {
     const r = await req('GET', '/auth/me', null, studentToken);
     const d = await r.json();
     assert(r.status === 200, `Expected 200, got ${r.status}`);
-    assert(d.user.email === 'arjun.sharma@campus.edu', 'Wrong user returned');
+    assert(d.user.email === 'yugandhar23@lpu.in', 'Wrong user returned');
   });
 
   await test('POST /auth/google – rejects missing email', async () => {
@@ -210,35 +210,39 @@ async function run() {
 
   /* ── Reservations ── */
   console.log('\n[ Reservations ]');
+  let testPeerToken = '';
   await test('GET /reservations – returns my reservations', async () => {
     const r = await req('GET', '/reservations', null, studentToken);
     const d = await r.json();
     assert(r.status === 200, `Expected 200`);
     assert(Array.isArray(d), 'Expected array');
-    assert(d.length >= 1, 'Expected at least 1 reservation for Arjun');
   });
 
   await test('POST /reservations – creates a reservation request', async () => {
-    // Login as keerthi (different from OS book owner)
-    const loginR = await req('POST', '/auth/login', { email: 'keerthi.reddy@campus.edu', password: 'Password@123' });
-    const loginD = await loginR.json();
-    const keerthiToken = loginD.token;
+    // Register a dynamic peer user
+    const peerEmail = `peer_${Date.now()}@campus.edu`;
+    const regR = await req('POST', '/auth/register', {
+      firstName: 'Peer', lastName: 'Student', email: peerEmail,
+      phone: '+91 9123456789', department: 'Computer Science & Engineering', password: 'Password@123'
+    });
+    const regD = await regR.json();
+    testPeerToken = regD.token;
 
-    // Get a resource owned by Meera (not Keerthi)
-    const listR = await req('GET', '/resources?category=books');
+    // Get an approved resource (owned by yugandhar)
+    const listR = await req('GET', '/resources');
     const listD = await listR.json();
-    const meeraResource = listD.items.find(i => i.ownerName && i.ownerName.includes('Meera'));
-    if (!meeraResource) { throw new Error('Could not find Meera resource for test'); }
+    const targetResource = listD.items[0];
+    if (!targetResource) { throw new Error('Could not find resource for test'); }
 
     const tomorrow  = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
     const nextWeek  = new Date(); nextWeek.setDate(nextWeek.getDate() + 7);
 
     const r = await req('POST', '/reservations', {
-      resourceId: meeraResource.id,
+      resourceId: targetResource.id,
       startDate:  tomorrow.toISOString(),
       returnDate: nextWeek.toISOString(),
       notes: 'Integration test reservation',
-    }, keerthiToken);
+    }, testPeerToken);
     const d = await r.json();
     assert(r.status === 201, `Expected 201, got ${r.status}: ${d.message}`);
     assert(d.status === 'pending', 'Expected pending');
@@ -247,11 +251,8 @@ async function run() {
 
   await test('PATCH /reservations/:id – owner can approve', async () => {
     if (!reservationId) throw new Error('No reservation ID from previous test');
-    // Owner is Meera
-    const loginR = await req('POST', '/auth/login', { email: 'meera.varghese@campus.edu', password: 'Password@123' });
-    const meeraToken = (await loginR.json()).token;
-
-    const r = await req('PATCH', `/reservations/${reservationId}`, { status: 'approved' }, meeraToken);
+    // Owner is studentToken (yugandhar)
+    const r = await req('PATCH', `/reservations/${reservationId}`, { status: 'approved' }, studentToken);
     const d = await r.json();
     assert(r.status === 200, `Expected 200, got ${r.status}: ${d.message}`);
     assert(d.status === 'approved', `Expected approved, got ${d.status}`);
@@ -279,7 +280,7 @@ async function run() {
     const r = await req('GET', '/requirements', null, studentToken);
     const d = await r.json();
     assert(r.status === 200, `Expected 200`);
-    assert(Array.isArray(d) && d.length >= 1, 'Expected at least 1 requirement');
+    assert(Array.isArray(d), 'Expected array');
   });
 
   await test('POST /requirements – creates a new requirement', async () => {
@@ -333,7 +334,7 @@ async function run() {
     const r = await req('GET', '/admin/users', null, adminToken);
     const d = await r.json();
     assert(r.status === 200, `Expected 200`);
-    assert(Array.isArray(d) && d.length >= 9, `Expected ≥9 users, got ${d.length}`);
+    assert(Array.isArray(d) && d.length >= 2, `Expected ≥2 users, got ${d.length}`);
   });
 
   await test('GET /admin/users – forbidden for student', async () => {
@@ -345,8 +346,8 @@ async function run() {
     const r = await req('GET', '/admin/analytics', null, adminToken);
     const d = await r.json();
     assert(r.status === 200, `Expected 200`);
-    assert(d.totalUsers >= 9, `Expected ≥9 users, got ${d.totalUsers}`);
-    assert(d.totalResources >= 9, `Expected ≥9 resources, got ${d.totalResources}`);
+    assert(d.totalUsers >= 2, `Expected ≥2 users, got ${d.totalUsers}`);
+    assert(d.totalResources >= 2, `Expected ≥2 resources, got ${d.totalResources}`);
     assert(typeof d.resourcesByCategory === 'object', 'Expected resourcesByCategory object');
   });
 

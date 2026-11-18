@@ -10,9 +10,16 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html {
+  font-size: 15px; /* Harmonized base sizing so all dashboard tools, cards, forms, tables, and options fit completely and are 100% visible */
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
   tab-size: 4;
+}
+
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
 }
 
 body {

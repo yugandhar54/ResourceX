@@ -51,11 +51,11 @@ router.get('/:id', async (req, res, next) => {
 router.post('/', authenticate, [
   body('title').trim().notEmpty().withMessage('Title is required').isLength({ max: 200 }),
   body('description').trim().notEmpty().withMessage('Description is required').isLength({ max: 2000 }),
-  body('category').isIn(['books','electronics','lab','materials','notes','papers','slides','manuals'])
+  body('category').isIn(['books','electronics','lab','materials','notes','papers','slides','manuals','calculators','stationery','other'])
     .withMessage('Invalid category'),
   body('type').isIn(['physical','digital']).withMessage('Type must be physical or digital'),
   body('exchangeMode').isIn(['free','borrow','sell']).withMessage('Invalid exchange mode'),
-  body('price').optional().isFloat({ min: 0 }).withMessage('Price must be a non-negative number'),
+  body('price').optional({ nullable: true }).custom(v => v === undefined || v === null || v === '' || !isNaN(Number(v))).withMessage('Price must be a valid number'),
   validate,
 ], async (req, res, next) => {
   try {

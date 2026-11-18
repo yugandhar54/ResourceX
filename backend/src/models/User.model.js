@@ -25,7 +25,8 @@ const UserSchema = new mongoose.Schema(
       lowercase: true,
       match:    [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Please enter a valid personal email'],
     },
-    rollNumber: { type: String, required: [true, 'Student/Faculty ID is required'], trim: true },
+    phone:      { type: String, default: '', trim: true },
+    rollNumber: { type: String, default: '', trim: true },
     department: { type: String, required: [true, 'Department is required'], trim: true },
     role:       {
       type:    String,

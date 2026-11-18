@@ -23,7 +23,7 @@ const ResourceSchema = new mongoose.Schema(
     category: {
       type:     String,
       required: [true, 'Category is required'],
-      enum:     ['books', 'electronics', 'lab', 'materials', 'notes', 'papers', 'slides', 'manuals'],
+      enum:     ['books', 'electronics', 'lab', 'materials', 'notes', 'papers', 'slides', 'manuals', 'calculators', 'stationery', 'other'],
     },
     subject: { type: String, trim: true },
     department: { type: String, trim: true },
@@ -36,8 +36,17 @@ const ResourceSchema = new mongoose.Schema(
     },
     condition: {
       type:    String,
-      enum:    ['Excellent', 'Good', 'Fair', 'Poor', 'N/A'],
+      enum:    ['Excellent', 'Good', 'Fair', 'Poor', 'N/A', 'like-new', 'good', 'fair', 'usable', 'Like New', 'Usable'],
       default: 'Good',
+      set: function(v) {
+        if (!v) return 'Good';
+        const c = String(v).toLowerCase().trim();
+        if (c === 'like-new' || c === 'like new' || c === 'excellent') return 'Excellent';
+        if (c === 'good') return 'Good';
+        if (c === 'fair' || c === 'usable' || c === 'poor') return 'Fair';
+        if (c === 'n/a') return 'N/A';
+        return v;
+      },
     },
     exchangeMode: {
       type:     String,
@@ -54,8 +63,15 @@ const ResourceSchema = new mongoose.Schema(
     },
     status: {
       type:    String,
-      enum:    ['pending', 'approved', 'rejected', 'removed'],
+      enum:    ['pending', 'approved', 'rejected', 'removed', 'available', 'borrowed', 'sold', 'reserved'],
       default: 'pending',
+      set: function(v) {
+        if (['available', 'borrowed', 'sold', 'reserved'].includes(v)) {
+          this.availability = v;
+          return 'pending';
+        }
+        return v || 'pending';
+      },
     },
 
     location: { type: String, trim: true },
@@ -80,6 +96,23 @@ const ResourceSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+/* ── Pre-validate hook to clean & normalize values ── */
+ResourceSchema.pre('validate', function(next) {
+  if (this.condition) {
+    const c = String(this.condition).toLowerCase().trim();
+    if (c === 'like-new' || c === 'like new' || c === 'excellent') this.condition = 'Excellent';
+    else if (c === 'good') this.condition = 'Good';
+    else if (c === 'fair') this.condition = 'Fair';
+    else if (c === 'usable' || c === 'poor') this.condition = 'Fair';
+    else if (c === 'n/a') this.condition = 'N/A';
+  }
+  if (['available', 'borrowed', 'sold', 'reserved'].includes(this.status)) {
+    this.availability = this.status;
+    this.status = 'approved';
+  }
+  next();
+});
 
 /* ── Indexes for common query patterns ── */
 ResourceSchema.index({ status: 1, availability: 1 });

@@ -57,6 +57,8 @@
   --bg-tertiary:       #f1f3f9;
   --bg-card:           #ffffff;
   --bg-sidebar:        #ffffff;
+  --bg-surface:        #ffffff;
+  --bg-muted:          #f1f3f9;
   --bg-overlay:        rgba(15, 14, 46, 0.6);
 
   --text-primary:      #0f0e2e;
@@ -151,10 +153,10 @@
   --z-tooltip:   600;
 
   /* ── Layout ── */
-  --container-max:      1280px;
-  --container-padding:  1.5rem;
-  --nav-height:         4rem;
-  --sidebar-width:      280px;
+  --container-max:      1360px;
+  --container-padding:  clamp(0.75rem, 2vw, 1.25rem);
+  --nav-height:         3.75rem;
+  --sidebar-width:      240px;
 }
 
 /* ── Dark Theme ── */
@@ -164,6 +166,8 @@
   --bg-tertiary:       #1a1840;
   --bg-card:           #1a1840;
   --bg-sidebar:        #13122e;
+  --bg-surface:        #1a1840;
+  --bg-muted:          #242250;
   --bg-overlay:        rgba(0,0,0,0.7);
 
   --text-primary:      #f0f0ff;

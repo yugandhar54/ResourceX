@@ -12,11 +12,17 @@
 
 /* ── Grid System ── */
 .grid { display: grid; }
-.grid-2 { grid-template-columns: repeat(2, 1fr); gap: var(--space-6); }
-.grid-3 { grid-template-columns: repeat(3, 1fr); gap: var(--space-6); }
-.grid-4 { grid-template-columns: repeat(4, 1fr); gap: var(--space-6); }
-.grid-auto { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-6); }
-.grid-auto-sm { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-4); }
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6); }
+.grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-6); }
+.grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-6); }
+.grid-auto { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--space-5); }
+.grid-auto-sm { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: var(--space-4); }
 
 /* ── Flex Utilities ── */
 .flex { display: flex; }
@@ -60,8 +66,11 @@
 /* ── Dashboard Layout ── */
 .dashboard-layout {
   display: grid;
-  grid-template-columns: var(--sidebar-width) 1fr;
-  min-height: calc(100vh - var(--nav-height));
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  min-height: 100vh;
+  width: 100%;
+  padding-top: var(--nav-height);
+  box-sizing: border-box;
 }
 .dashboard-sidebar {
   background: var(--bg-sidebar);
@@ -70,12 +79,34 @@
   top: var(--nav-height);
   height: calc(100vh - var(--nav-height));
   overflow-y: auto;
-  padding: var(--space-6) 0;
+  padding: var(--space-4) 0;
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  box-sizing: border-box;
+  z-index: 50;
 }
-.dashboard-content { padding: var(--space-8); overflow-x: hidden; }
-.dashboard-content-header { margin-bottom: var(--space-8); }
+.dashboard-content {
+  padding: clamp(var(--space-4), 2vw, var(--space-6));
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.dashboard-content-header { margin-bottom: var(--space-6); }
 .dashboard-content-header h1 { font-size: var(--text-2xl); margin-bottom: var(--space-1); }
 .dashboard-content-header p { font-size: var(--text-sm); }
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: calc(var(--z-modal) - 1);
+  backdrop-filter: blur(2px);
+}
+.sidebar-overlay.active {
+  display: block;
+}
 
 /* ── Page Header (inner pages) ── */
 .page-header {
@@ -120,11 +151,33 @@
 .font-semibold { font-weight: var(--font-semibold); }
 .font-bold     { font-weight: var(--font-bold); }
 
-@media (max-width: 1024px) {
-  .dashboard-layout { grid-template-columns: 1fr; }
-  .dashboard-sidebar { display: none; position: fixed; left: -100%; width: var(--sidebar-width); height: 100vh; top: 0; z-index: var(--z-overlay); transition: left var(--transition-slow); }
-  .dashboard-sidebar.open { left: 0; display: block; }
-  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 992px) {
+  .dashboard-layout {
+    grid-template-columns: 1fr;
+    display: block;
+    padding-top: var(--nav-height);
+  }
+  .dashboard-sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 280px;
+    height: 100vh;
+    z-index: var(--z-modal);
+    transition: left var(--transition-base);
+    background: var(--bg-sidebar);
+    box-shadow: var(--shadow-xl);
+    display: flex;
+    flex-direction: column;
+    padding-top: var(--space-4);
+  }
+  .dashboard-sidebar.open {
+    left: 0;
+    display: flex;
+  }
+  .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .grid-cols-3 { grid-template-columns: 1fr !important; }
 }
 @media (max-width: 768px) {
   :root { --container-padding: 1rem; }

@@ -437,10 +437,18 @@ select.form-control { background-image: url("data:image/svg+xml,%3Csvg xmlns='ht
 /* ══════════════════════════════════════════════════════════
    TABS
    ══════════════════════════════════════════════════════════ */
-.tabs { display: flex; border-bottom: 2px solid var(--border-color); gap: 0; overflow-x: auto; }
+.tabs {
+  display: flex;
+  border-bottom: 2px solid var(--border-color);
+  gap: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  max-width: 100%;
+}
 .tab-btn {
   display: inline-flex; align-items: center; gap: var(--space-2);
-  padding: var(--space-3) var(--space-5);
+  padding: var(--space-2) var(--space-4);
   font-size: var(--text-sm); font-weight: var(--font-medium);
   color: var(--text-muted); border: none; background: none;
   border-bottom: 2px solid transparent; margin-bottom: -2px;
@@ -495,13 +503,19 @@ select.form-control { background-image: url("data:image/svg+xml,%3Csvg xmlns='ht
 /* ══════════════════════════════════════════════════════════
    TABLE
    ══════════════════════════════════════════════════════════ */
-.table-wrapper { overflow-x: auto; }
-.table { width: 100%; border-collapse: collapse; }
-.table th { font-size: var(--text-xs); font-weight: var(--font-semibold); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); padding: var(--space-3) var(--space-4); text-align: left; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
-.table td { padding: var(--space-4); border-bottom: 1px solid var(--border-color); font-size: var(--text-sm); color: var(--text-primary); vertical-align: middle; }
+.table-wrapper,
+.card:has(> .table),
+.card:has(> table) {
+  width: 100%;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+.table { width: 100%; border-collapse: collapse; min-width: 580px; }
+.table th { font-size: var(--text-xs); font-weight: var(--font-semibold); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); padding: var(--space-2) var(--space-3); text-align: left; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+.table td { padding: var(--space-3); border-bottom: 1px solid var(--border-color); font-size: var(--text-sm); color: var(--text-primary); vertical-align: middle; }
 .table tr:last-child td { border-bottom: none; }
 .table tbody tr:hover { background: var(--bg-tertiary); }
-.table-actions { display: flex; align-items: center; gap: var(--space-2); }
+.table-actions { display: flex; align-items: center; gap: var(--space-2); flex-wrap: nowrap; }
 
 /* ══════════════════════════════════════════════════════════
    RATING STARS

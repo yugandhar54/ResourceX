@@ -31,8 +31,8 @@ const DEMO_DATA = {
         'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80'
       ],
       thumbnail: 'https://images.unsplash.com/photo-1532012164546-f432f2e3777f?auto=format&fit=crop&w=600&q=80',
-      ownerId: 'u001',
-      ownerName: 'Arjun Sharma',
+      ownerId: 'u_primary',
+      ownerName: 'Yugandhar Chandu',
       ownerDept: 'Computer Science & Engineering',
       rating: 4.7,
       reviewCount: 12,
@@ -59,9 +59,9 @@ const DEMO_DATA = {
         'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80'
       ],
       thumbnail: 'https://images.unsplash.com/photo-1553406830-ef2513450d76?auto=format&fit=crop&w=600&q=80',
-      ownerId: 'u002',
-      ownerName: 'Priya Nair',
-      ownerDept: 'Electronics & Communication Engineering',
+      ownerId: 'u_primary',
+      ownerName: 'Yugandhar Chandu',
+      ownerDept: 'Computer Science & Engineering',
       rating: 4.9,
       reviewCount: 8,
       views: 134,
@@ -86,8 +86,8 @@ const DEMO_DATA = {
         'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=800&q=80'
       ],
       thumbnail: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=600&q=80',
-      ownerId: 'u003',
-      ownerName: 'Keerthi Reddy',
+      ownerId: 'u_primary',
+      ownerName: 'Yugandhar Chandu',
       ownerDept: 'Computer Science & Engineering',
       rating: 4.5,
       reviewCount: 3,
@@ -112,8 +112,8 @@ const DEMO_DATA = {
       ],
       thumbnail: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=600&q=80',
       fileUrl: '#demo-file',
-      ownerId: 'u004',
-      ownerName: 'Rahul Menon',
+      ownerId: 'u_primary',
+      ownerName: 'Yugandhar Chandu',
       ownerDept: 'Computer Science & Engineering',
       rating: 4.8,
       reviewCount: 21,
@@ -138,9 +138,9 @@ const DEMO_DATA = {
       ],
       thumbnail: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=600&q=80',
       fileUrl: '#demo-file',
-      ownerId: 'u002',
-      ownerName: 'Priya Nair',
-      ownerDept: 'Electronics & Communication Engineering',
+      ownerId: 'u_primary',
+      ownerName: 'Yugandhar Chandu',
+      ownerDept: 'Computer Science & Engineering',
       rating: 4.6,
       reviewCount: 15,
       views: 198,
@@ -166,8 +166,8 @@ const DEMO_DATA = {
         'https://images.unsplash.com/photo-1562975079-50953a925695?auto=format&fit=crop&w=800&q=80'
       ],
       thumbnail: 'https://images.unsplash.com/photo-1629654297299-c8506221ca97?auto=format&fit=crop&w=600&q=80',
-      ownerId: 'u005',
-      ownerName: 'Dr. Anand Kumar',
+      ownerId: 'u_primary',
+      ownerName: 'Yugandhar Chandu',
       ownerDept: 'Computer Science & Engineering',
       rating: 5.0,
       reviewCount: 4,
@@ -193,9 +193,9 @@ const DEMO_DATA = {
         'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=800&q=80'
       ],
       thumbnail: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=600&q=80',
-      ownerId: 'u006',
-      ownerName: 'Sneha Pillai',
-      ownerDept: 'Mathematics',
+      ownerId: 'u_primary',
+      ownerName: 'Yugandhar Chandu',
+      ownerDept: 'Computer Science & Engineering',
       rating: 4.3,
       reviewCount: 6,
       views: 52,
@@ -219,8 +219,8 @@ const DEMO_DATA = {
       ],
       thumbnail: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=600&q=80',
       fileUrl: '#demo-file',
-      ownerId: 'u001',
-      ownerName: 'Arjun Sharma',
+      ownerId: 'u_primary',
+      ownerName: 'Yugandhar Chandu',
       ownerDept: 'Computer Science & Engineering',
       rating: 4.4,
       reviewCount: 9,
@@ -247,9 +247,9 @@ const DEMO_DATA = {
         'https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=800&q=80'
       ],
       thumbnail: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80',
-      ownerId: 'u007',
-      ownerName: 'Vikram Iyer',
-      ownerDept: 'Mechanical Engineering',
+      ownerId: 'u_primary',
+      ownerName: 'Yugandhar Chandu',
+      ownerDept: 'Computer Science & Engineering',
       rating: 4.8,
       reviewCount: 5,
       views: 33,
@@ -273,9 +273,9 @@ const DEMO_DATA = {
       ],
       thumbnail: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=600&q=80',
       fileUrl: '#demo-file',
-      ownerId: 'u002',
-      ownerName: 'Priya Nair',
-      ownerDept: 'Electronics & Communication Engineering',
+      ownerId: 'u_primary',
+      ownerName: 'Yugandhar Chandu',
+      ownerDept: 'Computer Science & Engineering',
       rating: 4.7,
       reviewCount: 11,
       views: 189,
@@ -300,8 +300,8 @@ const DEMO_DATA = {
         'https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?auto=format&fit=crop&w=800&q=80'
       ],
       thumbnail: 'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?auto=format&fit=crop&w=600&q=80',
-      ownerId: 'u003',
-      ownerName: 'Keerthi Reddy',
+      ownerId: 'u_primary',
+      ownerName: 'Yugandhar Chandu',
       ownerDept: 'Computer Science & Engineering',
       rating: 0,
       reviewCount: 0,
@@ -327,9 +327,9 @@ const DEMO_DATA = {
         'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=800&q=80'
       ],
       thumbnail: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=600&q=80',
-      ownerId: 'u008',
-      ownerName: 'Meera Varghese',
-      ownerDept: 'Information Technology',
+      ownerId: 'u_primary',
+      ownerName: 'Yugandhar Chandu',
+      ownerDept: 'Computer Science & Engineering',
       rating: 4.9,
       reviewCount: 7,
       views: 61,
@@ -351,76 +351,52 @@ const DEMO_DATA = {
   /* ──────────────────────────────────────────────────────────────
      RESERVATIONS
      ────────────────────────────────────────────────────────────── */
-  reservations: [
-    { id: 'res001', resourceId: 'r002', resourceTitle: 'Arduino Uno + Sensor Kit', requesterId: 'u001', requesterName: 'Arjun Sharma', ownerId: 'u002', ownerName: 'Priya Nair', startDate: '2026-10-15', endDate: '2026-10-29', status: 'active',   type: 'borrow', notes: 'Need for IoT mini project.' },
-    { id: 'res002', resourceId: 'r001', resourceTitle: 'Data Structures & Algorithms', requesterId: 'u003', requesterName: 'Keerthi Reddy', ownerId: 'u001', ownerName: 'Arjun Sharma', startDate: '2026-10-18', endDate: '2026-11-15', status: 'pending',  type: 'borrow', notes: 'For semester exam prep.' },
-    { id: 'res003', resourceId: 'r009', resourceTitle: 'Vernier Calipers Set', requesterId: 'u001', requesterName: 'Arjun Sharma', ownerId: 'u007', ownerName: 'Vikram Iyer', startDate: '2026-10-20', endDate: '2026-10-25', status: 'approved', type: 'borrow', notes: 'Lab practical this week.' },
-    { id: 'res004', resourceId: 'r007', resourceTitle: 'Engineering Mathematics Vol I & II', requesterId: 'u004', requesterName: 'Rahul Menon', ownerId: 'u006', ownerName: 'Sneha Pillai', startDate: '2026-09-01', endDate: '2026-09-30', status: 'returned', type: 'borrow', notes: '' },
-    { id: 'res005', resourceId: 'r003', resourceTitle: 'Operating Systems – Silberschatz', requesterId: 'u008', requesterName: 'Meera Varghese', ownerId: 'u003', ownerName: 'Keerthi Reddy', startDate: '2026-10-17', endDate: '2026-10-17', status: 'rejected', type: 'sell', notes: 'Interested in buying.' },
-  ],
+  reservations: [],
 
   /* ──────────────────────────────────────────────────────────────
-     TRANSACTIONS
+     TRANSACTIONS (Clean - No fake exchanges)
      ────────────────────────────────────────────────────────────── */
-  transactions: [
-    { id: 'txn001', resourceId: 'r003', resourceTitle: 'OS – Silberschatz', buyerId: 'u001', buyerName: 'Arjun Sharma', sellerId: 'u008', sellerName: 'Meera Varghese', type: 'sell', amount: 350, status: 'completed', date: '2026-09-10T14:00:00Z' },
-    { id: 'txn002', resourceId: 'r004', resourceTitle: 'ML Lecture Notes', borrowerId: 'u006', borrowerName: 'Sneha Pillai', lenderId: 'u004', lenderName: 'Rahul Menon', type: 'borrow', amount: 0, status: 'completed', date: '2026-09-20T09:00:00Z' },
-    { id: 'txn003', resourceId: 'r007', resourceTitle: 'Engineering Mathematics', buyerId: 'u001', buyerName: 'Arjun Sharma', sellerId: 'u006', sellerName: 'Sneha Pillai', type: 'sell', amount: 250, status: 'pending', date: '2026-10-14T16:30:00Z' },
-  ],
+  transactions: [],
 
   /* ──────────────────────────────────────────────────────────────
-     NOTIFICATIONS
+     NOTIFICATIONS (Clean - No fake notifications)
      ────────────────────────────────────────────────────────────── */
-  notifications: [
-    { id: 'n001', type: 'reservation', title: 'Borrow request received', message: 'Keerthi Reddy wants to borrow your "Data Structures & Algorithms" textbook.', time: '2026-10-17T18:00:00Z', read: false, link: 'reservations.html' },
-    { id: 'n002', type: 'match',       title: 'New resource match found', message: 'A resource matching your requirement "IoT Components" was just listed.', time: '2026-10-17T14:30:00Z', read: false, link: 'matches.html' },
-    { id: 'n003', type: 'transaction', title: 'Transaction update', message: 'Your purchase of "Engineering Mathematics" is pending confirmation.', time: '2026-10-14T16:35:00Z', read: true,  link: 'transactions.html' },
-    { id: 'n004', type: 'system',      title: 'Profile verified', message: 'Your campus email has been verified successfully. Your listings are now visible to others.', time: '2026-10-01T09:00:00Z', read: true,  link: 'profile.html' },
-    { id: 'n005', type: 'review',      title: 'New review on your listing', message: 'Someone rated your "Machine Learning Notes" 5 stars!', time: '2026-10-10T11:00:00Z', read: true,  link: 'my-resources.html' },
-  ],
+  notifications: [],
 
   /* ──────────────────────────────────────────────────────────────
-     REQUIREMENTS
+     REQUIREMENTS (Clean - No fake requirements)
      ────────────────────────────────────────────────────────────── */
-  requirements: [
-    { id: 'req001', userId: 'u001', title: 'Arduino components for IoT project', description: 'I need Arduino Uno, sensors (DHT11, ultrasonic), and breadboard for a semester IoT project.', category: 'electronics', preferredType: 'physical', preferredModes: ['borrow'], budget: 0, requiredBy: '2026-10-25', tags: ['arduino', 'iot', 'sensors'], createdAt: '2026-10-16T10:00:00Z', status: 'open' },
-    { id: 'req002', userId: 'u001', title: 'ML/AI textbook or notes', description: 'Looking for any good machine learning textbook or comprehensive notes. Either physical or digital works.', category: 'books', preferredType: 'any', preferredModes: ['borrow', 'free'], budget: 200, requiredBy: '2026-11-01', tags: ['machine learning', 'AI', 'notes'], createdAt: '2026-10-10T08:00:00Z', status: 'open' },
-  ],
+  requirements: [],
 
   /* ──────────────────────────────────────────────────────────────
-     REVIEWS
+     REVIEWS (Clean - No fake reviews)
      ────────────────────────────────────────────────────────────── */
-  reviews: [
-    { id: 'rv001', resourceId: 'r001', userId: 'u003', userName: 'Keerthi Reddy', rating: 5, comment: 'Excellent book, perfect condition as described. Arjun was very helpful.', date: '2026-09-28T14:00:00Z' },
-    { id: 'rv002', resourceId: 'r001', userId: 'u006', userName: 'Sneha Pillai',  rating: 4, comment: 'Great resource. Helped me a lot with exam prep.', date: '2026-10-02T10:00:00Z' },
-    { id: 'rv003', resourceId: 'r002', userId: 'u001', userName: 'Arjun Sharma',  rating: 5, comment: 'Complete kit, all sensors working. Great for beginners!', date: '2026-10-16T08:00:00Z' },
-    { id: 'rv004', resourceId: 'r004', userId: 'u006', userName: 'Sneha Pillai',  rating: 5, comment: 'Best ML notes I have seen. Covers everything with examples.', date: '2026-10-08T12:00:00Z' },
-  ],
+  reviews: [],
 
   /* ──────────────────────────────────────────────────────────────
-     ADMIN ANALYTICS (demo only)
+     ADMIN ANALYTICS (Clean platform metrics)
      ────────────────────────────────────────────────────────────── */
   analytics: {
-    totalUsers: 247,
-    totalResources: 189,
-    physicalResources: 112,
-    digitalResources: 77,
-    pendingListings: 14,
-    activeReservations: 38,
-    completedTransactions: 93,
-    reportedContent: 4,
+    totalUsers: 2,
+    totalResources: 12,
+    physicalResources: 8,
+    digitalResources: 4,
+    pendingListings: 0,
+    activeReservations: 0,
+    completedTransactions: 0,
+    reportedContent: 0,
     resourcesByCategory: {
-      'Books & Textbooks': 72,
-      'Electronics & IoT': 31,
-      'Lab Equipment': 18,
-      'Project Materials': 15,
-      'Notes & PDFs': 25,
-      'Question Papers': 14,
-      'Presentations': 9,
-      'Lab Manuals': 5,
+      'Books & Textbooks': 4,
+      'Electronics & IoT': 2,
+      'Lab Equipment': 2,
+      'Project Materials': 1,
+      'Notes & PDFs': 1,
+      'Question Papers': 1,
+      'Presentations': 1,
+      'Lab Manuals': 0,
     },
-    monthlyListings: [8, 12, 15, 22, 18, 30, 28, 35, 42, 38, 31, 0],
-    monthlyReservations: [4, 6, 9, 14, 11, 20, 18, 22, 30, 25, 20, 0],
+    monthlyListings: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    monthlyReservations: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     months: ['Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
   },
 };
