@@ -188,6 +188,7 @@ async function googleAuth({ credential, email, name, firstName, lastName, pictur
       lastName: resolvedLast,
       email: cleanEmail,
       personalEmail: cleanEmail,
+      phone: profile.phone || '',
       rollNumber: generatedRoll,
       department: 'Computer Science & Engineering',
       role: 'student',
