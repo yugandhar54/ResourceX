@@ -1,0 +1,12 @@
+{
+  "name": "resourcex",
+  "version": "1.0.0",
+  "description": "ResourceX Campus Resource Sharing Platform",
+  "private": true,
+  "scripts": {
+    "start": "node backend/src/server.js",
+    "dev": "nodemon backend/src/server.js",
+    "seed": "node backend/src/scripts/seed.js",
+    "clear:users": "node backend/src/scripts/clear-users.js"
+  }
+}
