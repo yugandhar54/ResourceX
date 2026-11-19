@@ -1,10 +1,11 @@
 /**
- * ResourceX – Google Authentication Module (Google Identity Services & OAuth 2.0)
+ * ResourceX – Google Authentication Module (Google Accounts OAuth 2.0 & GIS)
  *
  * Implements:
- * 1. Official Google Identity Services (GIS) Sign-In (ID Token credential flow)
- * 2. Official Google OAuth 2.0 Token Client (Popup flow)
- * 3. Graceful Google Account Chooser (fallback when origins are unconfigured or offline)
+ * 1. Direct redirect to official Google Accounts (accounts.google.com)
+ *    User is presented with Google's account selection page to pick their Google account.
+ * 2. Automatic OAuth 2.0 callback processing (?code=... or ?token=...)
+ * 3. Secure backend token exchange & user session establishment
  *
  * Client ID: 158657724214-i9d0qhle72cce2bui2gtsin1tc13iif5.apps.googleusercontent.com
  * Project ID: resourcex-515016
@@ -13,9 +14,6 @@
 const GoogleAuth = (() => {
   const DEFAULT_CLIENT_ID = '158657724214-i9d0qhle72cce2bui2gtsin1tc13iif5.apps.googleusercontent.com';
   const STORAGE_KEY_CLIENT_ID = 'rx_google_client_id';
-
-  let tokenClient = null;
-  let gisInitialized = false;
 
   /**
    * Retrieve active Google OAuth Client ID
@@ -31,14 +29,13 @@ const GoogleAuth = (() => {
   }
 
   /**
-   * Save Client ID to local storage & runtime CONFIG
+   * Get the current absolute redirect URI for Google OAuth
    */
-  function saveClientId(clientId) {
-    const cleaned = (clientId || '').trim();
-    if (cleaned) {
-      localStorage.setItem(STORAGE_KEY_CLIENT_ID, cleaned);
-      if (window.CONFIG) window.CONFIG.GOOGLE_CLIENT_ID = cleaned;
+  function getRedirectUri() {
+    if (window.location.protocol === 'file:') {
+      return 'http://localhost:8080/pages/login.html';
     }
+    return window.location.origin + window.location.pathname;
   }
 
   /**
@@ -63,37 +60,9 @@ const GoogleAuth = (() => {
   }
 
   /**
-   * Dynamically loads official Google Identity Services script if not already present
+   * Show a lightweight loading overlay during sign-in
    */
-  function loadGsiScript() {
-    if (window.google?.accounts?.id) return Promise.resolve(true);
-
-    return new Promise((resolve) => {
-      const existing = document.querySelector('script[src*="accounts.google.com/gsi/client"]');
-      if (existing) {
-        if (window.google?.accounts?.id) {
-          resolve(true);
-          return;
-        }
-        existing.addEventListener('load', () => resolve(true));
-        existing.addEventListener('error', () => resolve(false));
-        setTimeout(() => resolve(Boolean(window.google?.accounts?.id)), 1200);
-        return;
-      }
-      const s = document.createElement('script');
-      s.src = 'https://accounts.google.com/gsi/client';
-      s.async = true;
-      s.defer = true;
-      s.onload = () => resolve(true);
-      s.onerror = () => resolve(false);
-      document.head.appendChild(s);
-    });
-  }
-
-  /**
-   * Show a lightweight loading overlay during profile retrieval & sign-in
-   */
-  function showLoadingOverlay(message = 'Signing in with your Google Account…') {
+  function showLoadingOverlay(message = 'Redirecting to Google Accounts…') {
     let overlay = document.getElementById('google-loading-overlay');
     if (!overlay) {
       overlay = document.createElement('div');
@@ -101,7 +70,7 @@ const GoogleAuth = (() => {
       overlay.style.cssText = `
         position: fixed;
         inset: 0;
-        background: rgba(15, 23, 42, 0.72);
+        background: rgba(15, 23, 42, 0.75);
         backdrop-filter: blur(5px);
         -webkit-backdrop-filter: blur(5px);
         display: flex;
@@ -140,6 +109,41 @@ const GoogleAuth = (() => {
   }
 
   /**
+   * Redirect user to official Google Accounts page
+   * Forces account chooser (prompt=select_account) so the user selects their account
+   */
+  function redirectToGoogle() {
+    if (window.location.protocol === 'file:') {
+      Toast.warning('Google OAuth requires a local HTTP web server (e.g. http://localhost:8080/pages/login.html). Google cannot redirect to file:// URLs.', 'Web Server Required');
+      showAccountChooserModal();
+      return;
+    }
+
+    const clientId = getClientId();
+    const redirectUri = getRedirectUri();
+    const scope = encodeURIComponent('openid email profile');
+    const prompt = 'select_account';
+
+    try {
+      sessionStorage.setItem('rx_google_redirect_uri', redirectUri);
+      const next = new URLSearchParams(window.location.search).get('next');
+      if (next) sessionStorage.setItem('rx_oauth_next', next);
+    } catch (_) {}
+
+    const googleAuthUrl =
+      `https://accounts.google.com/o/oauth2/v2/auth?` +
+      `client_id=${encodeURIComponent(clientId)}` +
+      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+      `&response_type=code` +
+      `&scope=${scope}` +
+      `&prompt=${prompt}` +
+      `&access_type=online`;
+
+    showLoadingOverlay('Redirecting to Google Accounts…');
+    window.location.href = googleAuthUrl;
+  }
+
+  /**
    * Complete authentication in ResourceX (backend or local demo fallback)
    */
   async function completeSignIn(authPayload) {
@@ -150,11 +154,21 @@ const GoogleAuth = (() => {
 
       hideLoadingOverlay();
       const userName = result.user.name || result.user.firstName || authPayload.name || authPayload.email;
-      Toast.success(`Signed in as ${authPayload.email}`, `Welcome, ${userName}!`);
+      Toast.success(`Signed in as ${result.user.email || authPayload.email}`, `Welcome, ${userName}!`);
+
+      let target = './dashboard.html';
+      try {
+        const storedNext = sessionStorage.getItem('rx_oauth_next');
+        if (storedNext) {
+          sessionStorage.removeItem('rx_oauth_next');
+          target = storedNext;
+        } else {
+          const next = new URLSearchParams(window.location.search).get('next');
+          if (next) target = decodeURIComponent(next);
+        }
+      } catch (_) {}
 
       setTimeout(() => {
-        const next = new URLSearchParams(window.location.search).get('next');
-        const target = next ? decodeURIComponent(next) : './dashboard.html';
         window.location.href = target;
       }, 600);
 
@@ -168,195 +182,67 @@ const GoogleAuth = (() => {
   }
 
   /**
-   * Fetch Google User Profile using OAuth 2.0 Access Token
-   */
-  async function fetchUserInfoAndLogin(accessToken) {
-    showLoadingOverlay('Verifying Google Account…');
-    try {
-      const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Google UserInfo API returned HTTP ${response.status}`);
-      }
-
-      const googleUser = await response.json();
-      if (!googleUser.email) {
-        throw new Error('Google did not provide an email address.');
-      }
-
-      await completeSignIn({
-        email: googleUser.email,
-        name: googleUser.name || `${googleUser.given_name || ''} ${googleUser.family_name || ''}`.trim(),
-        firstName: googleUser.given_name || '',
-        lastName: googleUser.family_name || '',
-        picture: googleUser.picture || '',
-        googleId: googleUser.sub || '',
-      });
-      return true;
-    } catch (err) {
-      hideLoadingOverlay();
-      console.error('[GoogleAuth] UserInfo error:', err);
-      Toast.error(err.message || 'Failed to authenticate with Google.', 'Sign-in Failed');
-      return false;
-    }
-  }
-
-  /**
-   * Handler for Google Identity Services ID Token
-   */
-  async function handleCredentialResponse(response) {
-    if (!response || !response.credential) return;
-    try {
-      const payload = decodeJwt(response.credential);
-      const email = payload?.email;
-      if (!email) {
-        throw new Error('Google credential does not contain an email address.');
-      }
-      const name = payload?.name || `${payload?.given_name || ''} ${payload?.family_name || ''}`.trim();
-      const firstName = payload?.given_name || '';
-      const lastName = payload?.family_name || '';
-      const picture = payload?.picture || '';
-      const googleId = payload?.sub || '';
-
-      await completeSignIn({
-        credential: response.credential,
-        email,
-        name,
-        firstName,
-        lastName,
-        picture,
-        googleId,
-      });
-    } catch (err) {
-      hideLoadingOverlay();
-      console.error('[GoogleAuth] Credential auth error:', err);
-      Toast.error(err.message || 'Failed to authenticate with Google.', 'Sign-in Failed');
-    }
-  }
-
-  /**
-   * Check if page was loaded via a redirect from official Google with #access_token=...
+   * Check if page was loaded via redirect from Google with ?code=... or ?token=...
    */
   async function checkOAuthCallback() {
-    const hash = window.location.hash || '';
-    if (!hash || (!hash.includes('access_token=') && !hash.includes('error='))) {
-      return false;
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const token = urlParams.get('token');
+    const userRaw = urlParams.get('user');
+    const error = urlParams.get('error');
+
+    // 1. Direct token from server callback redirect
+    if (token) {
+      window.history.replaceState(null, '', window.location.pathname);
+      let userObj = null;
+      try { userObj = JSON.parse(decodeURIComponent(userRaw)); } catch (_) {}
+      if (userObj) {
+        Auth.login(userObj, token);
+        Toast.success(`Signed in as ${userObj.email}`, `Welcome back!`);
+        setTimeout(() => { window.location.href = './dashboard.html'; }, 600);
+        return true;
+      }
     }
 
-    const params = new URLSearchParams(hash.substring(1));
-    const accessToken = params.get('access_token');
-    const error = params.get('error');
-
-    window.history.replaceState(null, '', window.location.pathname + window.location.search);
-
+    // 2. Cancellation or error reported by Google
     if (error) {
+      window.history.replaceState(null, '', window.location.pathname);
       console.warn('[GoogleAuth] Google returned error in callback:', error);
-      showAccountChooserModal();
+      if (error === 'access_denied') {
+        Toast.info('Google sign-in was cancelled.', 'Cancelled');
+      } else {
+        Toast.warning(`Google OAuth error: ${error}`, 'Sign-in Cancelled');
+      }
       return false;
     }
 
-    if (!accessToken) return false;
-    return await fetchUserInfoAndLogin(accessToken);
-  }
+    // 3. Authorization Code returned from Google
+    if (code) {
+      window.history.replaceState(null, '', window.location.pathname);
+      showLoadingOverlay('Verifying Google Account…');
 
-  /**
-   * Initialize Google Identity Services (GIS)
-   */
-  function initGsi(clientId, officialContainerId, buttonId) {
-    if (gisInitialized || typeof google === 'undefined' || !google.accounts) return;
+      let redirectUri = getRedirectUri();
+      try {
+        const saved = sessionStorage.getItem('rx_google_redirect_uri');
+        if (saved) redirectUri = saved;
+      } catch (_) {}
 
-    try {
-      // 1. Initialize GIS credential callback
-      google.accounts.id.initialize({
-        client_id: clientId,
-        callback: handleCredentialResponse,
-        auto_select: false,
-        cancel_on_tap_outside: true,
-        context: 'signin',
-      });
-
-      // 2. Render Official Google button into container if present
-      if (officialContainerId) {
-        const container = document.getElementById(officialContainerId);
-        if (container) {
-          const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-          const isSignUp = (buttonId || '').includes('signup');
-
-          google.accounts.id.renderButton(container, {
-            theme: isDark ? 'filled_black' : 'outline',
-            size: 'large',
-            type: 'standard',
-            shape: 'rectangular',
-            text: isSignUp ? 'signup_with' : 'continue_with',
-            logo_alignment: 'left',
-            width: 320,
-          });
-
-          // Check if Google successfully injected the iframe button
-          setTimeout(() => {
-            if (container.children.length > 0) {
-              const customBtn = document.getElementById(buttonId);
-              if (customBtn) customBtn.style.display = 'none';
-            }
-          }, 400);
-        }
-      }
-
-      // 3. Initialize GIS OAuth 2.0 Token Client (Popup flow for custom button)
-      if (google.accounts.oauth2) {
-        tokenClient = google.accounts.oauth2.initTokenClient({
-          client_id: clientId,
-          scope: 'openid email profile',
-          callback: async (tokenResponse) => {
-            if (tokenResponse.error) {
-              console.warn('[GoogleAuth] Token response error:', tokenResponse.error);
-              if (tokenResponse.error === 'access_denied') {
-                Toast.info('Google sign-in was cancelled.', 'Cancelled');
-                return;
-              }
-              showAccountChooserModal();
-              return;
-            }
-            if (tokenResponse.access_token) {
-              await fetchUserInfoAndLogin(tokenResponse.access_token);
-            }
-          },
-          error_callback: (err) => {
-            console.warn('[GoogleAuth] GIS error callback:', err);
-            showAccountChooserModal();
-          },
-        });
-      }
-
-      gisInitialized = true;
-    } catch (err) {
-      console.warn('[GoogleAuth] GIS init warning:', err);
+      return await completeSignIn({ code, redirectUri });
     }
+
+    return false;
   }
 
   /**
-   * Beautiful Google Account Selection Dialog
-   * Displayed seamlessly when clicking custom button or when GIS popup encounters origin limitations
+   * Google Account Chooser Modal (fallback for file:// protocol or unwhitelisted origins)
    */
   function showAccountChooserModal() {
     const existing = document.getElementById('google-account-modal');
     if (existing) existing.remove();
 
     const accounts = [
-      {
-        name: 'Yugandhar Chandu',
-        email: 'yugandharchandu54@gmail.com',
-        avatarBg: '2563eb',
-      },
-      {
-        name: 'Chandu',
-        email: 'chandu05@gmail.com',
-        avatarBg: '0d9488',
-      },
+      { name: 'Yugandhar Chandu', email: 'yugandharchandu54@gmail.com', avatarBg: '2563eb' },
+      { name: 'Chandu', email: 'chandu05@gmail.com', avatarBg: '0d9488' },
     ];
 
     const modal = document.createElement('div');
@@ -380,7 +266,7 @@ const GoogleAuth = (() => {
             </svg>
           </div>
           <h3 style="margin:0 0 4px;font-size:18px;font-weight:700;color:var(--text-primary)">Sign in with Google</h3>
-          <p style="margin:0;font-size:13px;color:var(--text-secondary)">to continue to <strong>ResourceX</strong></p>
+          <p style="margin:0;font-size:13px;color:var(--text-secondary)">Choose an account to continue to <strong>ResourceX</strong></p>
         </div>
 
         <div style="padding:12px 16px">
@@ -401,7 +287,7 @@ const GoogleAuth = (() => {
           <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border-color)">
             <form id="google-custom-email-form">
               <label style="font-size:12px;font-weight:600;display:block;margin-bottom:6px;color:var(--text-secondary)">
-                Or use another Google account:
+                Or enter another Google account:
               </label>
               <div style="display:flex;gap:8px">
                 <input
@@ -409,7 +295,7 @@ const GoogleAuth = (() => {
                   id="google-custom-input"
                   class="form-control"
                   style="height:38px;font-size:13px"
-                  placeholder="your.google.account@gmail.com"
+                  placeholder="your.email@gmail.com"
                   required
                 />
                 <button type="submit" class="btn btn-primary btn-sm" style="height:38px;padding:0 16px;white-space:nowrap">
@@ -439,7 +325,6 @@ const GoogleAuth = (() => {
       if (e.target === modal) dismiss();
     });
 
-    // Account clicks
     modal.querySelectorAll('.google-acc-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
         const email = btn.getAttribute('data-email');
@@ -458,7 +343,6 @@ const GoogleAuth = (() => {
       });
     });
 
-    // Custom email form submit
     modal.querySelector('#google-custom-email-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const input = modal.querySelector('#google-custom-input');
@@ -483,73 +367,33 @@ const GoogleAuth = (() => {
   }
 
   /**
-   * Start Google Sign-In on button click
-   */
-  function startSignIn() {
-    // 1. If token client is initialized and we are on HTTP(S), try GIS popup
-    if (tokenClient && window.location.protocol !== 'file:') {
-      try {
-        tokenClient.requestAccessToken({ prompt: 'select_account' });
-        return;
-      } catch (err) {
-        console.warn('[GoogleAuth] GIS popup request error:', err);
-      }
-    }
-
-    // 2. If GIS One Tap can be prompted, try it
-    if (window.google?.accounts?.id && window.location.protocol !== 'file:') {
-      try {
-        google.accounts.id.prompt((notification) => {
-          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            showAccountChooserModal();
-          }
-        });
-        return;
-      } catch (_) {}
-    }
-
-    // 3. Fallback: Show the Google account selector
-    showAccountChooserModal();
-  }
-
-  /**
    * Initialize Google Auth on page
    */
   async function init(options) {
     const opts = typeof options === 'string' ? { buttonId: options } : (options || {});
     const buttonId = opts.buttonId || 'google-signin-btn';
-    const officialContainerId = opts.officialContainerId || null;
 
-    // Check if returning from OAuth callback in URL hash
+    // 1. Check if returning from Google OAuth redirect callback
     const handled = await checkOAuthCallback();
     if (handled) return;
 
-    const clientId = getClientId();
-
-    // Preload GIS library if on HTTP(S)
-    if (window.location.protocol !== 'file:') {
-      loadGsiScript().then(() => {
-        initGsi(clientId, officialContainerId, buttonId);
-      });
-    }
-
-    // Attach click listener to custom button
+    // 2. Attach click listener to Google button to trigger redirect to Google Accounts
     const button = document.getElementById(buttonId);
     if (button) {
       button.addEventListener('click', (e) => {
         e.preventDefault();
-        startSignIn();
+        redirectToGoogle();
       });
     }
   }
 
   return {
     init,
-    startSignIn,
+    redirectToGoogle,
+    startSignIn: redirectToGoogle,
     showAccountChooserModal,
     checkOAuthCallback,
     getClientId,
-    saveClientId,
   };
 })();
 

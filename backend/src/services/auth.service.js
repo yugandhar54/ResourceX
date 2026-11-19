@@ -119,12 +119,62 @@ function decodeJwtPayload(token) {
 
 /**
  * Google Sign-In / Sign-Up
- * Handles both Google ID Token (credential) or direct profile attributes.
+ * Handles Google OAuth 2.0 authorization code exchange, ID Token (credential), or direct profile attributes.
  * Returns { user (safe), token, isNewUser }.
  */
-async function googleAuth({ credential, email, name, firstName, lastName, picture, googleId }) {
+async function googleAuth({ code, redirectUri, credential, email, name, firstName, lastName, picture, googleId }) {
   const profile = { email, name, firstName, lastName, picture, googleId };
 
+  // 1. Exchange OAuth 2.0 authorization code for tokens directly with Google
+  if (code) {
+    const clientId = process.env.GOOGLE_CLIENT_ID || '158657724214-i9d0qhle72cce2bui2gtsin1tc13iif5.apps.googleusercontent.com';
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    if (clientSecret) {
+      try {
+        const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            code,
+            client_id: clientId,
+            client_secret: clientSecret,
+            redirect_uri: redirectUri || 'http://localhost:8080/pages/login.html',
+            grant_type: 'authorization_code',
+          }),
+        });
+
+        const tokenData = await tokenRes.json();
+        if (tokenData.id_token) {
+          const payload = decodeJwtPayload(tokenData.id_token);
+          if (payload) {
+            profile.email = payload.email || profile.email;
+            profile.name = payload.name || profile.name;
+            profile.firstName = payload.given_name || profile.firstName;
+            profile.lastName = payload.family_name || profile.lastName;
+            profile.picture = payload.picture || profile.picture;
+            profile.googleId = payload.sub || profile.googleId;
+          }
+        } else if (tokenData.access_token) {
+          const userinfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: `Bearer ${tokenData.access_token}` },
+          });
+          const googleUser = await userinfoRes.json();
+          profile.email = googleUser.email || profile.email;
+          profile.name = googleUser.name || profile.name;
+          profile.firstName = googleUser.given_name || profile.firstName;
+          profile.lastName = googleUser.family_name || profile.lastName;
+          profile.picture = googleUser.picture || profile.picture;
+          profile.googleId = googleUser.sub || profile.googleId;
+        } else if (tokenData.error) {
+          console.warn('[GoogleAuth] Token exchange error response:', tokenData.error, tokenData.error_description);
+        }
+      } catch (err) {
+        console.warn('[GoogleAuth] Token exchange failed:', err.message);
+      }
+    }
+  }
+
+  // 2. Decode credential if provided via Google Identity Services ID Token
   if (credential) {
     const payload = decodeJwtPayload(credential);
     if (payload) {

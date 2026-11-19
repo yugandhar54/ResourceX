@@ -61,6 +61,23 @@ router.post('/google', async (req, res, next) => {
   }
 });
 
+router.get('/google/callback', async (req, res) => {
+  try {
+    const { code, error } = req.query;
+    if (error) {
+      return res.redirect(`/pages/login.html?error=${encodeURIComponent(error)}`);
+    }
+    if (!code) {
+      return res.redirect('/pages/login.html');
+    }
+    const redirectUri = `${req.protocol}://${req.get('host')}/api/auth/google/callback`;
+    const result = await authService.googleAuth({ code, redirectUri });
+    return res.redirect(`/pages/login.html?token=${encodeURIComponent(result.token)}&user=${encodeURIComponent(JSON.stringify(result.user))}`);
+  } catch (err) {
+    return res.redirect(`/pages/login.html?error=${encodeURIComponent(err.message)}`);
+  }
+});
+
 /* ── Logout ── */
 router.post('/logout', authenticate, async (req, res, next) => {
   try {
