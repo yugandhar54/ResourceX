@@ -30,12 +30,14 @@ const GoogleAuth = (() => {
 
   /**
    * Get the current absolute redirect URI for Google OAuth
+   * Matches the URI registered in Google Cloud Console (http://localhost:8080/pages/login.html)
    */
   function getRedirectUri() {
     if (window.location.protocol === 'file:') {
       return 'http://localhost:8080/pages/login.html';
     }
-    return window.location.origin + window.location.pathname;
+    // Always route through the authorized login.html callback registered in Google Cloud Console
+    return `${window.location.origin}/pages/login.html`;
   }
 
   /**
